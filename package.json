@@ -1,0 +1,14 @@
+{
+  "name": "seamless-long-image-miniapp",
+  "version": "0.1.1",
+  "private": true,
+  "description": "完全本地处理的微信小程序长图拼接工具",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --test-isolation=none tests/*.test.js",
+    "check": "npm run typecheck && npm test"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,163 @@
+<view class="app" style="padding-top: {{statusBarHeight}}px;">
+  <view wx:if="{{state === 'select'}}" class="screen screen-select">
+    <view class="select-copy">
+      <text class="brand-title">青缝长图</text>
+      <text class="screen-title select-title">选择连续截图</text>
+      <text class="screen-subtitle">自动识别重叠部分，图片仅在本机处理</text>
+    </view>
+
+    <image wx:if="{{images.length === 0}}" class="select-illustration" src="/assets/select-illustration.svg" mode="aspectFit" />
+
+    <scroll-view wx:else class="selected-list" scroll-y enhanced show-scrollbar="false">
+      <view wx:for="{{images}}" wx:key="id" class="selected-row">
+        <text class="order-number">{{index + 1}}</text>
+        <image class="selected-thumb" src="{{item.thumbPath}}" mode="aspectFill" />
+        <view class="selected-meta">
+          <text class="selected-name">第 {{index + 1}} 张截图</text>
+          <text class="selected-size">{{item.width}} × {{item.height}}</text>
+        </view>
+        <view class="row-actions">
+          <button class="icon-button" disabled="{{index === 0}}" data-index="{{index}}" data-direction="-1" bindtap="moveImage">
+            <image src="/assets/icons/up.svg" mode="aspectFit" />
+          </button>
+          <button class="icon-button" disabled="{{index === images.length - 1}}" data-index="{{index}}" data-direction="1" bindtap="moveImage">
+            <image src="/assets/icons/down.svg" mode="aspectFit" />
+          </button>
+          <button class="icon-button danger" data-index="{{index}}" bindtap="removeImage">
+            <image src="/assets/icons/trash.svg" mode="aspectFit" />
+          </button>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view class="bottom-actions select-actions">
+      <button class="primary-button" bindtap="chooseImages">
+        <image src="/assets/icons/image.svg" mode="aspectFit" />
+        <text>{{images.length ? '继续选择' : '从相册选择'}}</text>
+      </button>
+      <button wx:if="{{images.length >= 2}}" class="secondary-button" bindtap="startAnalysis">开始拼接</button>
+      <text class="helper-text">请按从上到下的顺序选择 2–20 张</text>
+    </view>
+  </view>
+
+  <view wx:elif="{{state === 'analyzing' || state === 'exporting'}}" class="screen processing-screen">
+    <text class="top-title">{{state === 'analyzing' ? '正在识别重叠内容' : '正在生成长图'}}</text>
+    <view class="processing-visual">
+      <view class="scan-card scan-card-one"></view>
+      <view class="scan-card scan-card-two"></view>
+      <view class="scan-line"></view>
+    </view>
+    <text class="processing-progress">{{progress}}%</text>
+    <text class="screen-subtitle">{{progressText}}</text>
+    <view class="progress-track"><view class="progress-value" style="width: {{progress}}%;"></view></view>
+    <button wx:if="{{state === 'analyzing'}}" class="text-button" bindtap="cancelAnalysis">取消</button>
+  </view>
+
+  <view wx:elif="{{state === 'preview'}}" class="screen preview-screen">
+    <text class="top-title">拼接预览</text>
+    <scroll-view class="preview-scroll" scroll-y enhanced show-scrollbar="false">
+      <image wx:if="{{previewPath}}" class="overview-image" src="{{previewPath}}" mode="widthFix" />
+      <view wx:else class="preview-loading">正在生成预览</view>
+    </scroll-view>
+    <view class="removed-status">
+      <image src="/assets/icons/check.svg" mode="aspectFit" />
+      <text wx:if="{{autoRemovedCount}}">已自动去除 {{autoRemovedCount}} 处重复内容</text>
+      <text wx:elif="{{seams[currentSeamIndex].orderHint}}">检测到图片顺序可能反了</text>
+      <text wx:else>当前接缝需要手动确认</text>
+    </view>
+    <view class="seam-controller">
+      <button wx:if="{{seams[currentSeamIndex].orderHint}}" class="primary-button order-fix-button preview-order-fix" bindtap="swapCurrentPairAndRetry">交换这两张并重新分析</button>
+      <view class="seam-navigation">
+        <button class="square-button" disabled="{{currentSeamIndex === 0}}" bindtap="previousSeam">
+          <image src="/assets/icons/chevron-left.svg" mode="aspectFit" />
+        </button>
+        <text>接缝 {{currentSeamIndex + 1}} / {{seams.length}}</text>
+        <button class="square-button" disabled="{{currentSeamIndex === seams.length - 1}}" bindtap="nextSeam">
+          <image src="/assets/icons/chevron-right.svg" mode="aspectFit" />
+        </button>
+      </view>
+      <view class="button-row">
+        <button class="outline-button" bindtap="openCurrentSeam">微调接缝</button>
+        <button class="primary-button compact" bindtap="confirmStitch">确认拼接</button>
+      </view>
+      <button class="text-button" bindtap="returnToSelection">返回重选与排序</button>
+    </view>
+  </view>
+
+  <view wx:elif="{{state === 'manual'}}" class="screen manual-screen">
+    <text class="top-title">微调接缝 {{currentSeamIndex + 1}} / {{seams.length}}</text>
+    <text class="screen-subtitle manual-subtitle">{{seams[currentSeamIndex].orderHint ? '图片顺序可能反了，请返回重选并调整顺序' : seams[currentSeamIndex].mode === 'manual' ? '未找到可靠重叠，请确认保留范围' : '拖动接缝线，避开文字与图片主体'}}</text>
+    <button wx:if="{{seams[currentSeamIndex].orderHint}}" class="primary-button order-fix-button" bindtap="swapCurrentPairAndRetry">交换这两张并重新分析</button>
+    <view class="crop-preview-row">
+      <view class="crop-panel">
+        <image class="crop-image" src="{{images[currentSeamIndex].thumbPath}}" mode="aspectFill" />
+        <view class="crop-shade bottom" style="top: {{manualPrevPercent}}%;"></view>
+        <view class="crop-line" style="top: {{manualPrevPercent}}%;"></view>
+        <text class="crop-label">上一张保留到此</text>
+      </view>
+      <view class="crop-panel">
+        <image class="crop-image" src="{{images[currentSeamIndex + 1].thumbPath}}" mode="aspectFill" />
+        <view class="crop-shade top" style="height: {{manualNextPercent}}%;"></view>
+        <view class="crop-line" style="top: {{manualNextPercent}}%;"></view>
+        <text class="crop-label">下一张从此开始</text>
+      </view>
+    </view>
+    <view wx:if="{{seams[currentSeamIndex].mode === 'auto'}}" class="slider-group">
+      <text class="slider-title">联动调整接缝位置</text>
+      <slider min="0" max="100" value="{{manualLinkedPercent}}" activeColor="#08a99b" backgroundColor="#e5e9e7" block-size="22" bindchanging="onLinkedSeamChange" bindchange="onLinkedSeamChange" />
+    </view>
+    <view wx:else class="slider-group manual-sliders">
+      <text class="slider-title">上一张保留 {{manualPrevPercent}}%</text>
+      <slider min="2" max="100" value="{{manualPrevPercent}}" activeColor="#08a99b" backgroundColor="#e5e9e7" block-size="22" bindchanging="onManualPrevChange" bindchange="onManualPrevChange" />
+      <text class="slider-title">下一张从 {{manualNextPercent}}% 开始</text>
+      <slider min="0" max="98" value="{{manualNextPercent}}" activeColor="#08a99b" backgroundColor="#e5e9e7" block-size="22" bindchanging="onManualNextChange" bindchange="onManualNextChange" />
+    </view>
+    <button class="text-button" bindtap="returnToSelection">返回重选与排序</button>
+    <view class="bottom-actions manual-actions">
+      <button class="secondary-button" bindtap="cancelManual">返回预览</button>
+      <button class="primary-button" bindtap="confirmManual">确认接缝</button>
+    </view>
+  </view>
+
+  <view wx:elif="{{state === 'complete'}}" class="screen complete-screen">
+    <text class="top-title">拼接完成</text>
+    <view class="result-preview-shell">
+      <image class="result-preview" src="{{resultPath}}" mode="widthFix" />
+    </view>
+    <view class="removed-status result-status">
+      <image src="/assets/icons/check.svg" mode="aspectFit" />
+      <text>已生成 1 张无重叠长图</text>
+    </view>
+    <text class="result-size">{{resultWidth}} × {{resultHeight}}{{resultWasScaled ? ' · 已自动等比缩小' : ''}}</text>
+    <view class="bottom-actions complete-actions">
+      <button class="primary-button" bindtap="saveResult">
+        <image src="/assets/icons/download.svg" mode="aspectFit" />
+        <text>保存到相册</text>
+      </button>
+      <view class="button-row">
+        <button class="secondary-button" bindtap="restart">
+          <image src="/assets/icons/refresh.svg" mode="aspectFit" />
+          <text>重新拼接</text>
+        </button>
+        <button class="secondary-button" bindtap="shareResult">
+          <image src="/assets/icons/share.svg" mode="aspectFit" />
+          <text>分享</text>
+        </button>
+      </view>
+      <view class="privacy-note">
+        <image src="/assets/icons/lock.svg" mode="aspectFit" />
+        <text>原图与结果不会上传服务器</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:else class="screen error-screen">
+    <view class="error-mark">!</view>
+    <text class="screen-title">处理没有完成</text>
+    <text class="screen-subtitle error-message">{{errorMessage}}</text>
+    <button class="primary-button error-retry" bindtap="retryFromError">返回重试</button>
+  </view>
+
+  <canvas id="overviewCanvas" type="2d" class="overview-canvas-buffer" style="height: {{previewCanvasHeight}}px;"></canvas>
+  <canvas id="exportCanvas" type="2d" class="export-canvas"></canvas>
+</view>
