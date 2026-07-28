@@ -12,6 +12,10 @@ type PendingAnalysis = {
   reject: (error: Error) => void;
 };
 
+const SHARE_TITLE = "青缝长图拼接｜连续截图自动去重复叠";
+const SHARE_PATH = "/pages/index/index";
+const SHARE_IMAGE = "/assets/share-card.png";
+
 let analyzerWorker: WorkerLike | null = null;
 let activeJobId = "";
 let pendingAnalysis = new Map<number, PendingAnalysis>();
@@ -89,6 +93,22 @@ Page({
 
   onUnload(this: any) {
     this.releaseTask(true);
+  },
+
+  onShareAppMessage() {
+    return {
+      title: SHARE_TITLE,
+      path: SHARE_PATH,
+      imageUrl: SHARE_IMAGE
+    };
+  },
+
+  onShareTimeline() {
+    return {
+      title: SHARE_TITLE,
+      query: "",
+      imageUrl: SHARE_IMAGE
+    };
   },
 
   ensureWorker(this: any) {

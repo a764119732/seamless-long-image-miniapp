@@ -4,7 +4,7 @@
 
 ## 当前项目证据
 
-- `miniprogram/pages/index/index.ts` 未实现 `onShareAppMessage` 或 `onShareTimeline`，因此当前线上版本没有页面卡片分享能力。
+- 本地 `0.1.4` 已实现 `onShareAppMessage` 和 `onShareTimeline`，固定分享标题、首页路径及 `/assets/share-card.png` 宣传封面；需上传、审核和发布后才会进入线上版本。
 - 项目此前移除的是 `wx.showShareImageMenu`：该接口分享用户生成的拼接结果图片。恢复固定的小程序首页卡片分享与恢复结果图片分享是两件不同的事。
 - 产品仍采用本地处理：不上传原图或拼接结果，不提供用户内容发布、评论、社区或公开展示。
 

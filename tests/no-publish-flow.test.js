@@ -9,7 +9,7 @@ function read(relativePath) {
   return fs.readFileSync(path.join(__dirname, "..", relativePath), "utf8");
 }
 
-test("小程序不包含图片发布或分享入口", () => {
+test("小程序不包含用户图片发布或拼接结果分享入口", () => {
   const pageLogic = read("miniprogram/pages/index/index.ts");
   const pageTemplate = read("miniprogram/pages/index/index.wxml");
   const apiTypes = read("miniprogram/types/global.d.ts");

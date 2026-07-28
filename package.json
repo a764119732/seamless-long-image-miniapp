@@ -1,6 +1,6 @@
 {
   "name": "seamless-long-image-miniapp",
-  "version": "0.1.1",
+  "version": "0.1.4",
   "private": true,
   "description": "完全本地处理的微信小程序长图拼接工具",
   "scripts": {
