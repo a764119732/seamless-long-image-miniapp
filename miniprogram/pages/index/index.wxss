@@ -599,6 +599,65 @@
   margin-top: 54rpx;
 }
 
+.privacy-overlay {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40rpx;
+  box-sizing: border-box;
+  background: rgba(16, 18, 17, 0.48);
+}
+
+.privacy-dialog {
+  width: 100%;
+  padding: 44rpx 36rpx 36rpx;
+  box-sizing: border-box;
+  border-radius: 28rpx;
+  background: #ffffff;
+  box-shadow: 0 24rpx 70rpx rgba(17, 50, 46, 0.18);
+}
+
+.privacy-title {
+  display: block;
+  color: #101211;
+  font-size: 36rpx;
+  font-weight: 650;
+  text-align: center;
+}
+
+.privacy-description {
+  display: block;
+  margin-top: 28rpx;
+  color: #5f6764;
+  font-size: 27rpx;
+  line-height: 1.65;
+}
+
+.privacy-contract-link {
+  margin: 18rpx 0 0;
+  padding: 12rpx 0;
+  background: transparent;
+  color: #078e83;
+  font-size: 26rpx;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.privacy-actions {
+  margin-top: 32rpx;
+}
+
+.privacy-actions .primary-button,
+.privacy-actions .secondary-button {
+  flex: 1;
+  height: 88rpx;
+  border-radius: 20rpx;
+  font-size: 28rpx;
+}
+
 .export-canvas {
   position: fixed;
   left: -10000px;

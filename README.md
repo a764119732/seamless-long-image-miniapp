@@ -15,7 +15,7 @@
 1. 安装依赖：`npm install`
 2. 执行检查：`npm run check`
 3. 使用微信开发者工具导入本目录，首次预览可使用测试号；正式发布前将 `project.config.json` 的 `appid` 替换为已注册小程序 AppID。
-4. 基础库最低版本为 2.25.0；真机调试时分别验证 iOS 与 Android。
+4. 基础库最低版本为 2.32.3；真机调试时分别验证 iOS 与 Android。
 
 ## 目录
 

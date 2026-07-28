@@ -3,6 +3,7 @@ declare function Page<T extends Record<string, unknown>>(options: T): void;
 
 declare const wx: {
   chooseMedia(options: Record<string, unknown>): void;
+  getPrivacySetting(options: Record<string, unknown>): void;
   getImageInfo(options: Record<string, unknown>): void;
   createOffscreenCanvas(options: Record<string, unknown>): CanvasLike;
   createWorker(path: string): WorkerLike;
@@ -10,6 +11,7 @@ declare const wx: {
   saveImageToPhotosAlbum(options: Record<string, unknown>): void;
   showShareImageMenu(options: Record<string, unknown>): void;
   openSetting(options?: Record<string, unknown>): void;
+  openPrivacyContract(options: Record<string, unknown>): void;
   showToast(options: Record<string, unknown>): void;
   showModal(options: Record<string, unknown>): void;
   getWindowInfo(): { safeArea?: { top: number }; statusBarHeight?: number };

@@ -158,6 +158,23 @@
     <button class="primary-button error-retry" bindtap="retryFromError">返回重试</button>
   </view>
 
+  <view wx:if="{{showPrivacy}}" class="privacy-overlay">
+    <view class="privacy-dialog">
+      <text class="privacy-title">隐私保护提示</text>
+      <text class="privacy-description">为了选择用于拼接的图片，需要访问你主动选择的照片。图片只在本机处理，不会上传服务器。</text>
+      <button class="privacy-contract-link" bindtap="openPrivacyContract">{{privacyContractName}}</button>
+      <view class="button-row privacy-actions">
+        <button class="secondary-button" bindtap="handlePrivacyDisagree">暂不同意</button>
+        <button
+          id="privacy-agree-button"
+          class="primary-button"
+          open-type="agreePrivacyAuthorization"
+          bindagreeprivacyauthorization="handleAgreePrivacyAuthorization"
+        >同意并继续</button>
+      </view>
+    </view>
+  </view>
+
   <canvas id="overviewCanvas" type="2d" class="overview-canvas-buffer" style="height: {{previewCanvasHeight}}px;"></canvas>
   <canvas id="exportCanvas" type="2d" class="export-canvas"></canvas>
 </view>

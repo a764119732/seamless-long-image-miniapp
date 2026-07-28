@@ -76,7 +76,9 @@ Page({
     resultWidth: 0,
     resultHeight: 0,
     resultWasScaled: false,
-    errorMessage: ""
+    errorMessage: "",
+    showPrivacy: false,
+    privacyContractName: "《青缝长图拼接用户隐私保护指引》"
   },
 
   onLoad(this: any) {
@@ -126,6 +128,45 @@ Page({
       wx.showToast({ title: "最多选择 20 张", icon: "none" });
       return;
     }
+    wx.getPrivacySetting({
+      success: (result: { needAuthorization: boolean; privacyContractName?: string }) => {
+        if (result.needAuthorization) {
+          this.setData({
+            showPrivacy: true,
+            privacyContractName: result.privacyContractName || this.data.privacyContractName
+          });
+          return;
+        }
+        this.openMediaPicker();
+      },
+      fail: () => {
+        wx.showToast({ title: "暂时无法确认隐私授权，请重试", icon: "none" });
+      }
+    });
+  },
+
+  handleAgreePrivacyAuthorization(this: any) {
+    this.setData({ showPrivacy: false });
+    this.openMediaPicker();
+  },
+
+  handlePrivacyDisagree(this: any) {
+    this.setData({ showPrivacy: false });
+    wx.showToast({ title: "同意隐私指引后才能选择图片", icon: "none" });
+  },
+
+  openPrivacyContract() {
+    wx.openPrivacyContract({
+      fail: () => wx.showToast({ title: "隐私指引暂时无法打开", icon: "none" })
+    });
+  },
+
+  openMediaPicker(this: any) {
+    const remaining = 20 - this.data.images.length;
+    if (remaining <= 0) {
+      wx.showToast({ title: "最多选择 20 张", icon: "none" });
+      return;
+    }
     wx.chooseMedia({
       count: remaining,
       mediaType: ["image"],
@@ -152,6 +193,16 @@ Page({
         } catch (error) {
           this.showError(error);
         }
+      },
+      fail: (error: { errMsg?: string }) => {
+        const message = error.errMsg || "";
+        if (message.includes("cancel")) return;
+        if (message.includes("privacy permission")) {
+          this.setData({ showPrivacy: true });
+          wx.showToast({ title: "请先同意隐私保护指引", icon: "none" });
+          return;
+        }
+        wx.showToast({ title: "无法打开相册，请稍后重试", icon: "none" });
       }
     });
   },
