@@ -9,13 +9,11 @@ declare const wx: {
   createWorker(path: string): WorkerLike;
   canvasToTempFilePath(options: Record<string, unknown>, component?: unknown): void;
   saveImageToPhotosAlbum(options: Record<string, unknown>): void;
-  showShareImageMenu(options: Record<string, unknown>): void;
   openSetting(options?: Record<string, unknown>): void;
   openPrivacyContract(options: Record<string, unknown>): void;
   showToast(options: Record<string, unknown>): void;
   showModal(options: Record<string, unknown>): void;
   getWindowInfo(): { safeArea?: { top: number }; statusBarHeight?: number };
-  canIUse(schema: string): boolean;
 };
 
 interface WorkerLike {

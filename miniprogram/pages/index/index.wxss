@@ -554,10 +554,6 @@
   margin-top: 28rpx;
 }
 
-.complete-actions .button-row .secondary-button {
-  flex: 1;
-}
-
 .privacy-note {
   display: flex;
   align-items: center;

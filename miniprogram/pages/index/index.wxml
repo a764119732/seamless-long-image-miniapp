@@ -134,16 +134,10 @@
         <image src="/assets/icons/download.svg" mode="aspectFit" />
         <text>保存到相册</text>
       </button>
-      <view class="button-row">
-        <button class="secondary-button" bindtap="restart">
-          <image src="/assets/icons/refresh.svg" mode="aspectFit" />
-          <text>重新拼接</text>
-        </button>
-        <button class="secondary-button" bindtap="shareResult">
-          <image src="/assets/icons/share.svg" mode="aspectFit" />
-          <text>分享</text>
-        </button>
-      </view>
+      <button class="secondary-button" bindtap="restart">
+        <image src="/assets/icons/refresh.svg" mode="aspectFit" />
+        <text>重新拼接</text>
+      </button>
       <view class="privacy-note">
         <image src="/assets/icons/lock.svg" mode="aspectFit" />
         <text>原图与结果不会上传服务器</text>

@@ -509,18 +509,6 @@ Page({
     });
   },
 
-  shareResult(this: any) {
-    if (!this.data.resultPath) return;
-    if (!wx.canIUse("showShareImageMenu")) {
-      wx.showToast({ title: "当前微信版本不支持图片分享", icon: "none" });
-      return;
-    }
-    wx.showShareImageMenu({
-      path: this.data.resultPath,
-      fail: () => wx.showToast({ title: "分享未完成", icon: "none" })
-    });
-  },
-
   restart(this: any) {
     this.releaseTask(false);
     this.setData({
