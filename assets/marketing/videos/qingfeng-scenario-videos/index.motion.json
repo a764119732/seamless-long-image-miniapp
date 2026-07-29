@@ -1,0 +1,16 @@
+{
+  "duration": 15,
+  "maxStaticSec": 1.6,
+  "assertions": [
+    { "kind": "appearsBy", "selector": "#scene-count .count-headline", "bySec": 0.35 },
+    { "kind": "appearsBy", "selector": "#scene-overlap .scene-title", "bySec": 2.4 },
+    { "kind": "appearsBy", "selector": "#scene-process .phone", "bySec": 5.8 },
+    { "kind": "appearsBy", "selector": "#scene-scroll .scroll-phone", "bySec": 10.7 },
+    { "kind": "appearsBy", "selector": "#scene-cta .poster-shell", "bySec": 13.6 },
+    { "kind": "staysInFrame", "selector": "#scene-count .count-result" },
+    { "kind": "staysInFrame", "selector": "#scene-process .phone" },
+    { "kind": "staysInFrame", "selector": "#scene-scroll .scroll-phone" },
+    { "kind": "staysInFrame", "selector": "#scene-cta .poster-shell" },
+    { "kind": "keepsMoving", "withinSelector": "#root" }
+  ]
+}

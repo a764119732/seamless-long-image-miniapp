@@ -58,11 +58,6 @@
         font-family: "Microsoft YaHei", Arial, sans-serif;
       }
 
-      .mono {
-        font-family: "JetBrains Mono", "Microsoft YaHei", monospace;
-        font-variant-numeric: tabular-nums;
-      }
-
       #root {
         position: relative;
         width: 1080px;
@@ -70,555 +65,826 @@
         overflow: hidden;
       }
 
+      .clip,
       .scene,
-      .transition {
+      .scene-fill {
         position: absolute;
         inset: 0;
         width: 1080px;
         height: 1920px;
+      }
+
+      .scene {
         overflow: hidden;
       }
 
       .scene-fill {
-        position: absolute;
-        inset: 0;
         background: var(--bg);
       }
 
-      .scene-grid {
-        position: absolute;
-        inset: 0;
-        overflow: hidden;
-        pointer-events: none;
-      }
-
-      .grid-line {
-        position: absolute;
-        background: var(--border);
-        opacity: 0.7;
-      }
-
-      .grid-line.vertical {
-        width: 2px;
-        height: 1920px;
-      }
-
-      .grid-line.horizontal {
-        width: 1080px;
-        height: 2px;
-      }
-
-      .grid-line.v1 {
-        left: 82px;
-      }
-
-      .grid-line.v2 {
-        right: 82px;
-      }
-
-      .grid-line.h1 {
-        top: 168px;
-      }
-
-      .grid-line.h2 {
-        bottom: 148px;
-      }
-
-      .stitch-rail {
-        position: absolute;
-        right: 68px;
-        top: 210px;
-        width: 22px;
-        height: 1240px;
-        border-left: 3px dashed var(--accent);
-        opacity: 0.42;
-      }
-
-      .stitch-dot {
-        position: absolute;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: var(--accent);
-      }
-
-      .stitch-dot.one {
-        right: 60px;
-        top: 360px;
-      }
-
-      .stitch-dot.two {
-        right: 60px;
-        top: 920px;
-      }
-
-      .stitch-dot.three {
-        right: 60px;
-        top: 1360px;
+      .mono {
+        font-family: "JetBrains Mono", "Microsoft YaHei", monospace;
+        font-variant-numeric: tabular-nums;
       }
 
       .topbar {
         position: absolute;
-        top: 64px;
-        left: 72px;
-        right: 72px;
+        top: 58px;
+        left: 64px;
+        right: 64px;
+        z-index: 10;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        z-index: 4;
       }
 
-      .brand-lockup {
+      .brand {
         display: flex;
         align-items: center;
-        gap: 16px;
+        gap: 15px;
         color: var(--accent-pressed);
         font-size: 30px;
-        font-weight: 700;
-        letter-spacing: -0.02em;
+        font-weight: 800;
       }
 
       .brand-mark {
-        width: 28px;
-        height: 28px;
+        width: 29px;
+        height: 29px;
         border: 5px solid var(--accent);
-        border-radius: 8px 8px 15px 8px;
+        border-radius: 8px 8px 16px 8px;
         transform: rotate(-12deg);
       }
 
-      .scene-index {
+      .timecode {
         color: var(--secondary);
-        font-size: 24px;
-        letter-spacing: 0.08em;
-      }
-
-      .problem-content {
-        position: absolute;
-        inset: 0;
-        padding: 210px 76px 100px;
-      }
-
-      .eyebrow {
-        display: inline-flex;
-        align-items: center;
-        gap: 14px;
-        margin-bottom: 30px;
-        color: var(--warning);
         font-size: 28px;
-        font-weight: 700;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.06em;
       }
 
-      .eyebrow::before {
-        content: "";
-        display: inline-block;
-        width: 58px;
-        height: 5px;
-        border-radius: 5px;
-        background: var(--warning);
+      .edge-rule {
+        position: absolute;
+        left: 64px;
+        right: 64px;
+        top: 126px;
+        height: 3px;
+        background: var(--border);
       }
 
-      .hero-title {
-        width: 870px;
+      .scene-title {
         margin: 0;
-        font-size: 82px;
-        line-height: 1.08;
+        font-size: 72px;
+        line-height: 1.12;
         font-weight: 900;
         letter-spacing: -0.055em;
       }
 
-      .hero-subtitle {
-        width: 760px;
-        margin: 30px 0 0;
+      .scene-subtitle {
+        margin: 22px 0 0;
         color: var(--secondary);
-        font-size: 38px;
-        line-height: 1.55;
-        font-weight: 400;
+        font-size: 32px;
+        line-height: 1.5;
       }
 
-      .shots-stage {
-        position: absolute;
-        left: 40px;
-        right: 40px;
-        bottom: 116px;
-        height: 910px;
-        perspective: 1400px;
-      }
-
-      .shot {
-        position: absolute;
-        top: 80px;
-        width: 470px;
-        height: 790px;
-        overflow: hidden;
-        border: 3px solid var(--border);
-        border-radius: 36px;
-        background: var(--bg);
-        box-shadow: 0 26px 72px rgba(16, 18, 17, 0.13);
-        transform-origin: 50% 90%;
-      }
-
-      .shot-a {
-        left: 8px;
-        transform: rotate(-8deg);
-      }
-
-      .shot-b {
-        left: 300px;
-        top: 34px;
-        z-index: 2;
-        transform: rotate(3deg);
-      }
-
-      .shot-c {
-        right: 2px;
-        top: 124px;
-        transform: rotate(9deg);
-      }
-
-      .shot-head {
-        height: 96px;
-        padding: 30px 34px;
-        border-bottom: 3px solid var(--border);
-        color: var(--fg);
-        font-size: 27px;
-        font-weight: 700;
-      }
-
-      .shot-body {
-        padding: 24px 28px;
-      }
-
-      .mock-row {
-        position: relative;
-        min-height: 88px;
-        margin-bottom: 20px;
-        padding: 18px 22px;
-        border-radius: 20px;
-        background: var(--soft);
-        color: var(--fg);
-        font-size: 25px;
-        line-height: 1.4;
-      }
-
-      .mock-row.repeat {
-        border: 3px solid var(--accent);
-        background: var(--bg);
-      }
-
-      .repeat-tag {
-        position: absolute;
-        top: -17px;
-        right: 14px;
-        padding: 6px 14px;
-        border-radius: 18px;
-        background: var(--accent-pressed);
-        color: var(--bg);
-        font-size: 18px;
-        font-weight: 700;
-      }
-
-      .problem-note {
-        position: absolute;
-        right: 74px;
-        bottom: 50px;
-        z-index: 5;
-        color: var(--warning);
-        font-size: 28px;
-        font-weight: 700;
-      }
-
-      .solution-content {
+      /* 0–2 秒：8 张截图 → 1 张长图 */
+      .count-content {
         position: absolute;
         inset: 0;
-        padding: 190px 74px 90px;
+        padding: 185px 64px 84px;
       }
 
-      .solution-kicker {
-        color: var(--accent-pressed);
-        font-size: 30px;
-        font-weight: 700;
-        letter-spacing: 0.1em;
-      }
-
-      .solution-title {
-        width: 880px;
-        margin: 22px 0 0;
-        font-size: 80px;
+      .count-headline {
+        width: 100%;
+        margin: 0;
+        opacity: 0;
+        text-align: center;
+        font-size: 88px;
         line-height: 1.08;
         font-weight: 900;
-        letter-spacing: -0.055em;
+        letter-spacing: -0.06em;
       }
 
-      .merge-stage {
+      .count-headline .arrow {
+        display: inline-block;
+        margin: 0 20px;
+        color: var(--accent-pressed);
+      }
+
+      .count-stage {
         position: absolute;
-        top: 590px;
-        left: 74px;
-        right: 74px;
-        height: 950px;
+        left: 64px;
+        right: 64px;
+        top: 450px;
+        bottom: 110px;
         display: grid;
-        grid-template-columns: 340px 88px 1fr;
+        grid-template-columns: 530px 82px 300px;
         align-items: center;
+        gap: 20px;
+      }
+
+      .eight-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 250px);
         gap: 22px;
+        align-content: center;
       }
 
-      .source-stack {
+      .count-thumb {
         position: relative;
-        width: 340px;
-        height: 720px;
-      }
-
-      .source-card {
-        position: absolute;
-        left: 18px;
-        width: 296px;
-        height: 320px;
+        height: 250px;
+        opacity: 0;
         overflow: hidden;
-        padding: 24px;
+        padding: 22px;
         border: 3px solid var(--border);
         border-radius: 28px;
         background: var(--bg);
-        box-shadow: 0 18px 48px rgba(16, 18, 17, 0.1);
+        box-shadow: 0 18px 44px rgba(16, 18, 17, 0.1);
       }
 
-      .source-card:nth-child(1) {
-        top: 0;
-        transform: rotate(-7deg);
+      .thumb-number {
+        color: var(--accent-pressed);
+        font-size: 23px;
+        font-weight: 800;
       }
 
-      .source-card:nth-child(2) {
-        top: 194px;
-        left: 4px;
-        z-index: 2;
-        transform: rotate(5deg);
-      }
-
-      .source-card:nth-child(3) {
-        bottom: 0;
-        left: 28px;
-        transform: rotate(-3deg);
-      }
-
-      .mini-line {
+      .thumb-line {
         display: block;
         width: 100%;
-        height: 30px;
-        margin-bottom: 18px;
-        border-radius: 10px;
+        height: 22px;
+        margin-top: 17px;
+        border-radius: 8px;
         background: var(--soft);
       }
 
-      .mini-line.accent {
+      .thumb-line.short {
+        width: 72%;
+      }
+
+      .thumb-copy {
+        margin-top: 16px;
+        font-size: 22px;
+        line-height: 1.35;
+        font-weight: 700;
+      }
+
+      .count-arrow {
+        display: grid;
+        place-items: center;
+        opacity: 0;
+        color: var(--accent-pressed);
+        font-size: 70px;
+        font-weight: 900;
+      }
+
+      .count-result {
+        position: relative;
+        height: 1120px;
+        opacity: 0;
+        overflow: hidden;
+        border: 5px solid var(--accent-pressed);
+        border-radius: 34px;
+        background: var(--bg);
+        box-shadow: 0 30px 74px rgba(8, 169, 155, 0.18);
+      }
+
+      .count-result-head {
+        padding: 28px 24px;
+        background: var(--accent-pressed);
+        color: var(--bg);
+        font-size: 26px;
+        font-weight: 800;
+        text-align: center;
+      }
+
+      .count-result-row {
+        margin: 15px 18px 0;
+        min-height: 84px;
+        padding: 17px;
+        border-radius: 17px;
+        background: var(--soft);
+        font-size: 20px;
+        line-height: 1.35;
+        font-weight: 700;
+      }
+
+      /* 2–5 秒：原图重复 */
+      .overlap-content {
+        position: absolute;
+        inset: 0;
+        padding: 190px 64px 80px;
+      }
+
+      .overlap-title-row {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 30px;
+      }
+
+      .overlap-badge {
+        flex: 0 0 auto;
+        padding: 17px 24px;
+        border: 3px solid var(--warning);
+        border-radius: 24px;
+        background: var(--bg);
+        color: var(--warning);
+        font-size: 26px;
+        font-weight: 800;
+      }
+
+      .overlap-stage {
+        position: absolute;
+        left: 36px;
+        right: 36px;
+        top: 500px;
+        height: 1260px;
+        perspective: 1600px;
+      }
+
+      .overlap-card {
+        position: absolute;
+        width: 560px;
+        height: 830px;
+        overflow: hidden;
+        border: 4px solid var(--border);
+        border-radius: 36px;
+        background: var(--bg);
+        box-shadow: 0 30px 76px rgba(16, 18, 17, 0.14);
+        transform-origin: 50% 86%;
+      }
+
+      .overlap-card:nth-child(1) {
+        left: 24px;
+        top: 80px;
+        transform: rotate(-7deg);
+      }
+
+      .overlap-card:nth-child(2) {
+        left: 250px;
+        top: 200px;
+        z-index: 2;
+        transform: rotate(2deg);
+      }
+
+      .overlap-card:nth-child(3) {
+        right: 60px;
+        top: 350px;
+        z-index: 3;
+        transform: rotate(8deg);
+      }
+
+      .overlap-card-head {
+        padding: 28px 30px;
+        border-bottom: 3px solid var(--border);
+        font-size: 26px;
+        font-weight: 800;
+      }
+
+      .overlap-card-body {
+        padding: 26px;
+      }
+
+      .overlap-row {
+        position: relative;
+        min-height: 118px;
+        margin-bottom: 22px;
+        padding: 23px;
+        border-radius: 20px;
+        background: var(--soft);
+        font-size: 26px;
+        line-height: 1.38;
+        font-weight: 700;
+      }
+
+      .overlap-row.repeated {
+        border: 4px solid var(--accent);
+        background: var(--bg);
+      }
+
+      .repeat-label {
+        position: absolute;
+        top: -21px;
+        right: 16px;
+        padding: 7px 16px;
+        border-radius: 18px;
         border: 3px solid var(--accent-pressed);
         background: var(--bg);
+        color: var(--accent-pressed);
+        font-size: 19px;
+        font-weight: 800;
       }
 
-      .merge-arrow {
+      .repeat-connector {
+        position: absolute;
+        left: 118px;
+        right: 105px;
+        bottom: 62px;
+        z-index: 8;
         display: flex;
-        flex-direction: column;
         align-items: center;
+        justify-content: center;
         gap: 18px;
-        color: var(--accent-pressed);
-      }
-
-      .arrow-line {
-        display: block;
-        width: 70px;
-        height: 8px;
-        border-radius: 8px;
-        background: var(--accent-pressed);
-        transform-origin: left center;
-      }
-
-      .arrow-head {
-        width: 34px;
-        height: 34px;
-        border-top: 8px solid var(--accent-pressed);
-        border-right: 8px solid var(--accent-pressed);
-        transform: rotate(45deg);
-      }
-
-      .result-card {
-        position: relative;
-        width: 462px;
-        height: 820px;
-        overflow: hidden;
-        border: 4px solid var(--accent-pressed);
-        border-radius: 38px;
+        padding: 20px 26px;
+        border: 4px solid var(--accent);
+        border-radius: 26px;
         background: var(--bg);
-        box-shadow: 0 28px 82px rgba(8, 169, 155, 0.18);
+        color: var(--accent-pressed);
+        font-size: 30px;
+        font-weight: 900;
+        box-shadow: 0 20px 54px rgba(8, 169, 155, 0.18);
       }
 
-      .result-head {
-        height: 98px;
-        padding: 30px 34px;
+      /* 5–10 秒：模拟选图与拼接 */
+      .process-content {
+        position: absolute;
+        inset: 0;
+        padding: 178px 64px 72px;
+      }
+
+      .process-copy {
+        position: absolute;
+        left: 64px;
+        right: 64px;
+        top: 180px;
+        text-align: center;
+      }
+
+      .phone {
+        position: absolute;
+        left: 130px;
+        top: 450px;
+        width: 820px;
+        height: 1320px;
+        overflow: hidden;
+        border: 6px solid var(--fg);
+        border-radius: 58px;
+        background: var(--bg);
+        box-shadow: 0 32px 82px rgba(16, 18, 17, 0.16);
+      }
+
+      .phone-bar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 96px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         border-bottom: 3px solid var(--border);
-        color: var(--accent-pressed);
         font-size: 28px;
         font-weight: 800;
       }
 
-      .result-body {
-        padding: 24px 28px;
-      }
-
-      .result-row {
-        min-height: 72px;
-        margin-bottom: 16px;
-        padding: 16px 18px;
-        border-radius: 18px;
-        background: var(--soft);
-        font-size: 24px;
-        line-height: 1.45;
-      }
-
-      .stitch-path {
+      .phone-notch {
         position: absolute;
-        left: 26px;
-        top: 102px;
-        width: 410px;
-        height: 680px;
-        pointer-events: none;
+        top: 24px;
+        left: 28px;
+        width: 66px;
+        height: 14px;
+        border-radius: 14px;
+        background: var(--fg);
       }
 
-      .stitch-path path {
-        fill: none;
-        stroke: var(--accent-pressed);
-        stroke-width: 4;
-        stroke-dasharray: 12 12;
-        stroke-linecap: round;
-      }
-
-      .benefits {
+      .phone-layer {
         position: absolute;
-        left: 76px;
-        right: 76px;
-        bottom: 92px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 18px;
-      }
-
-      .benefit {
-        flex: 1;
-        padding: 22px 18px;
-        border: 3px solid var(--border);
-        border-radius: 24px;
+        left: 0;
+        right: 0;
+        top: 96px;
+        bottom: 0;
+        padding: 44px;
         background: var(--bg);
-        color: var(--fg);
-        text-align: center;
-        font-size: 25px;
-        font-weight: 700;
       }
 
-      .privacy-pill {
-        position: absolute;
-        left: 74px;
-        bottom: 196px;
-        display: inline-flex;
+      .home-layer {
+        display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 16px;
-        padding: 20px 28px;
+        justify-content: center;
+      }
+
+      .home-icon {
+        position: relative;
+        width: 180px;
+        height: 230px;
+        margin-bottom: 48px;
+        border: 8px solid var(--accent);
+        border-radius: 30px;
+      }
+
+      .home-icon::before,
+      .home-icon::after {
+        content: "";
+        position: absolute;
+        left: 38px;
+        right: 38px;
+        height: 10px;
+        border-radius: 10px;
+        background: var(--accent);
+      }
+
+      .home-icon::before {
+        top: 68px;
+      }
+
+      .home-icon::after {
+        top: 120px;
+      }
+
+      .home-copy {
+        margin-bottom: 40px;
+        color: var(--secondary);
+        font-size: 30px;
+        line-height: 1.5;
+        text-align: center;
+      }
+
+      .home-copy span {
+        display: block;
+      }
+
+      .select-button {
+        position: relative;
+        width: 620px;
+        padding: 30px;
         border-radius: 28px;
         background: var(--accent-pressed);
         color: var(--bg);
-        font-size: 27px;
-        font-weight: 700;
-        box-shadow: 0 16px 42px rgba(8, 169, 155, 0.2);
+        text-align: center;
+        font-size: 34px;
+        font-weight: 900;
       }
 
-      .privacy-lock {
+      .click-ripple {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 90px;
+        height: 90px;
+        margin: -45px 0 0 -45px;
+        border: 4px solid var(--bg);
+        border-radius: 50%;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .album-layer,
+      .merge-layer {
+        opacity: 0;
+      }
+
+      .album-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 30px;
+        font-size: 28px;
+        font-weight: 800;
+      }
+
+      .selected-count {
+        color: var(--accent-pressed);
+      }
+
+      .album-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 22px;
+      }
+
+      .album-thumb {
         position: relative;
-        width: 22px;
-        height: 20px;
-        border: 4px solid var(--bg);
-        border-radius: 5px;
-      }
-
-      .privacy-lock::before {
-        content: "";
-        position: absolute;
-        left: 3px;
-        top: -16px;
-        width: 10px;
-        height: 13px;
-        border: 4px solid var(--bg);
-        border-bottom: 0;
-        border-radius: 8px 8px 0 0;
-      }
-
-      .cta-fill {
-        position: absolute;
-        inset: 0;
+        height: 230px;
+        overflow: hidden;
+        padding: 22px;
+        border: 3px solid var(--border);
+        border-radius: 24px;
         background: var(--soft);
       }
 
-      .cta-frame {
+      .album-thumb-title {
+        color: var(--secondary);
+        font-size: 20px;
+        font-weight: 700;
+      }
+
+      .album-thumb-copy {
+        margin-top: 22px;
+        font-size: 22px;
+        line-height: 1.4;
+        font-weight: 800;
+      }
+
+      .album-check {
         position: absolute;
-        inset: 42px;
-        border: 4px solid var(--accent);
-        border-radius: 42px;
+        right: 16px;
+        top: 16px;
+        display: grid;
+        place-items: center;
+        width: 42px;
+        height: 42px;
+        border: 3px solid var(--accent);
+        border-radius: 50%;
+        background: var(--bg);
+        color: var(--bg);
+        font-size: 25px;
+        font-weight: 900;
+      }
+
+      .album-check.selected {
+        background: var(--accent-pressed);
+      }
+
+      .merge-layer {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .merge-status {
+        width: 100%;
+        margin: 4px 0 28px;
+        color: var(--accent-pressed);
+        font-size: 30px;
+        font-weight: 900;
+        text-align: center;
+      }
+
+      .merge-stack {
+        position: relative;
+        width: 660px;
+        height: 690px;
+      }
+
+      .merge-mini {
+        position: absolute;
+        left: 260px;
+        top: 278px;
+        width: 150px;
+        height: 210px;
+        overflow: hidden;
+        padding: 14px;
+        border: 3px solid var(--border);
+        border-radius: 18px;
+        background: var(--bg);
+        box-shadow: 0 12px 30px rgba(16, 18, 17, 0.11);
+      }
+
+      .merge-mini span {
+        display: block;
+        width: 100%;
+        height: 18px;
+        margin-bottom: 12px;
+        border-radius: 7px;
+        background: var(--soft);
+      }
+
+      .merged-preview {
+        position: absolute;
+        left: 220px;
+        top: 50px;
+        width: 220px;
+        height: 590px;
+        overflow: hidden;
+        border: 4px solid var(--accent-pressed);
+        border-radius: 24px;
+        background: var(--bg);
+        opacity: 0;
+        box-shadow: 0 24px 64px rgba(8, 169, 155, 0.18);
+      }
+
+      .merged-preview-head {
+        padding: 18px 12px;
+        background: var(--accent-pressed);
+        color: var(--bg);
+        font-size: 21px;
+        font-weight: 800;
+        text-align: center;
+      }
+
+      .merged-preview-row {
+        margin: 10px 12px 0;
+        min-height: 46px;
+        padding: 9px;
+        border-radius: 10px;
+        background: var(--soft);
+        font-size: 14px;
+        line-height: 1.35;
+        font-weight: 700;
+      }
+
+      .progress-track {
+        width: 620px;
+        height: 20px;
+        overflow: hidden;
+        border-radius: 20px;
+        background: var(--border);
+      }
+
+      .progress-fill {
+        display: block;
+        width: 100%;
+        height: 20px;
+        background: var(--accent-pressed);
+        transform-origin: left center;
+      }
+
+      .progress-label {
+        margin-top: 20px;
+        color: var(--secondary);
+        font-size: 26px;
+        font-weight: 700;
+      }
+
+      .demo-cursor {
+        position: absolute;
+        left: 730px;
+        top: 950px;
+        z-index: 30;
+        width: 58px;
+        height: 76px;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .demo-cursor::before {
+        content: "";
+        display: block;
+        width: 0;
+        height: 0;
+        border-top: 56px solid var(--fg);
+        border-right: 30px solid transparent;
+        transform: rotate(-24deg);
+      }
+
+      /* 10–13 秒：滚动最终长图 */
+      .scroll-copy {
+        position: absolute;
+        left: 64px;
+        right: 64px;
+        top: 178px;
+        text-align: center;
+      }
+
+      .scroll-phone {
+        position: absolute;
+        left: 145px;
+        top: 430px;
+        width: 790px;
+        height: 1320px;
+        overflow: hidden;
+        border: 6px solid var(--fg);
+        border-radius: 58px;
+        background: var(--bg);
+        box-shadow: 0 34px 88px rgba(16, 18, 17, 0.16);
+      }
+
+      .scroll-header {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 4;
+        height: 96px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-bottom: 3px solid var(--border);
+        background: var(--bg);
+        color: var(--accent-pressed);
+        font-size: 28px;
+        font-weight: 900;
+      }
+
+      .scroll-window {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 96px;
+        bottom: 0;
+        overflow: hidden;
+        background: var(--soft);
+      }
+
+      .scroll-content {
+        position: absolute;
+        left: 35px;
+        top: 30px;
+        width: 708px;
+        min-height: 2040px;
+        padding: 34px;
+        border-radius: 30px;
         background: var(--bg);
       }
 
-      .poster-wrap {
+      .long-head {
+        padding-bottom: 26px;
+        border-bottom: 3px solid var(--border);
+        font-size: 34px;
+        font-weight: 900;
+      }
+
+      .long-section {
+        margin-top: 22px;
+        padding: 28px;
+        border-radius: 24px;
+        background: var(--soft);
+      }
+
+      .long-section-number {
+        color: var(--accent-pressed);
+        font-size: 22px;
+        font-weight: 900;
+      }
+
+      .long-section-copy {
+        margin-top: 12px;
+        font-size: 27px;
+        line-height: 1.45;
+        font-weight: 700;
+      }
+
+      .scroll-indicator {
+        position: absolute;
+        right: 18px;
+        top: 150px;
+        z-index: 6;
+        width: 8px;
+        height: 270px;
+        border-radius: 8px;
+        background: var(--accent);
+        transform-origin: top center;
+      }
+
+      /* 13–15 秒：品牌与正式小程序码 */
+      .cta-fill {
+        background: var(--soft);
+      }
+
+      .cta-card {
+        position: absolute;
+        inset: 42px;
+        border: 4px solid var(--accent);
+        border-radius: 44px;
+        background: var(--bg);
+        box-shadow: 0 24px 72px rgba(16, 18, 17, 0.12);
+      }
+
+      .cta-title {
         position: absolute;
         left: 70px;
-        top: 60px;
-        width: 940px;
-        height: 1660px;
+        right: 70px;
+        top: 100px;
+        color: var(--fg);
+        font-size: 78px;
+        line-height: 1.08;
+        font-weight: 900;
+        letter-spacing: -0.055em;
+        text-align: center;
+      }
+
+      .poster-shell {
+        position: absolute;
+        left: 260px;
+        top: 330px;
+        width: 560px;
+        height: 990px;
         overflow: hidden;
-        border-radius: 34px;
+        border: 3px solid var(--border);
+        border-radius: 30px;
         background: var(--bg);
-        box-shadow: 0 30px 88px rgba(16, 18, 17, 0.15);
+        box-shadow: 0 28px 74px rgba(16, 18, 17, 0.14);
       }
 
       .poster {
         display: block;
-        width: 940px;
-        height: 1660px;
+        width: 100%;
+        height: 100%;
         object-fit: contain;
       }
 
-      .cta-label {
+      .privacy {
         position: absolute;
-        left: 120px;
-        right: 120px;
-        bottom: 66px;
-        padding: 28px 32px;
-        border-radius: 30px;
+        left: 150px;
+        right: 150px;
+        bottom: 260px;
+        padding: 28px 34px;
+        border-radius: 28px;
         background: var(--accent-pressed);
         color: var(--bg);
+        font-size: 39px;
+        font-weight: 900;
         text-align: center;
-        font-size: 32px;
-        font-weight: 800;
-        letter-spacing: 0.02em;
       }
 
-      .transition {
-        z-index: 30;
-        pointer-events: none;
-      }
-
-      .wipe-panel {
+      .cta-note {
         position: absolute;
-        inset: 0;
-        width: 1080px;
-        height: 1920px;
-        background: var(--accent);
-        transform-origin: left center;
-      }
-
-      .wipe-thread {
-        position: absolute;
-        left: 0;
-        top: 50%;
-        display: block;
-        width: 1080px;
-        height: 8px;
-        background: var(--bg);
-        transform-origin: left center;
+        left: 140px;
+        right: 140px;
+        bottom: 150px;
+        color: var(--secondary);
+        font-size: 29px;
+        font-weight: 700;
+        text-align: center;
       }
     </style>
   </head>
@@ -632,217 +898,239 @@
       data-height="1920"
     >
       <section
-        id="scene-problem"
+        id="scene-count"
         class="scene clip"
         data-start="0"
-        data-duration="3.85"
+        data-duration="2"
         data-track-index="1"
         data-layout-allow-overlap
         data-layout-allow-occlusion
       >
         <div class="scene-fill"></div>
-        <div class="scene-grid">
-          <span class="grid-line vertical v1"></span>
-          <span class="grid-line vertical v2"></span>
-          <span class="grid-line horizontal h1"></span>
-          <span class="grid-line horizontal h2"></span>
-          <span class="stitch-rail"></span>
-          <span class="stitch-dot one"></span>
-          <span class="stitch-dot two"></span>
-          <span class="stitch-dot three"></span>
-        </div>
         <div class="topbar">
-          <div class="brand-lockup"><span class="brand-mark"></span>青缝长图拼接</div>
-          <div class="scene-index mono">01 / 03</div>
+          <div class="brand"><span class="brand-mark"></span>青缝长图拼接</div>
+          <div class="timecode mono">00:00–00:02</div>
         </div>
-        <div class="problem-content">
-          <div class="eyebrow">连续截图的麻烦</div>
-          <h1 class="hero-title" id="problem-title"></h1>
-          <p class="hero-subtitle" id="problem-subtitle"></p>
-          <div class="shots-stage" id="shots-stage"></div>
+        <span class="edge-rule"></span>
+        <div class="count-content">
+          <h1 class="count-headline">
+            <span class="count-part">8张截图</span><span class="arrow">→</span
+            ><span class="count-part">1张长图</span>
+          </h1>
+          <div class="count-stage">
+            <div class="eight-grid" id="eight-grid"></div>
+            <div class="count-arrow">→</div>
+            <div class="count-result">
+              <div class="count-result-head">1 张连续长图</div>
+              <div id="count-result-body"></div>
+            </div>
+          </div>
         </div>
-        <div class="problem-note">重复、断裂、难整理</div>
       </section>
 
       <section
-        id="scene-solution"
+        id="scene-overlap"
         class="scene clip"
-        data-start="3.8"
-        data-duration="6.55"
+        data-start="2"
+        data-duration="3"
         data-track-index="2"
         data-layout-allow-overlap
         data-layout-allow-occlusion
       >
         <div class="scene-fill"></div>
-        <div class="scene-grid">
-          <span class="grid-line vertical v1"></span>
-          <span class="grid-line vertical v2"></span>
-          <span class="grid-line horizontal h1"></span>
-          <span class="grid-line horizontal h2"></span>
-          <span class="stitch-rail"></span>
-          <span class="stitch-dot one"></span>
-          <span class="stitch-dot two"></span>
-          <span class="stitch-dot three"></span>
-        </div>
         <div class="topbar">
-          <div class="brand-lockup"><span class="brand-mark"></span>青缝长图拼接</div>
-          <div class="scene-index mono">02 / 03</div>
+          <div class="brand"><span class="brand-mark"></span>青缝长图拼接</div>
+          <div class="timecode mono">00:02–00:05</div>
         </div>
-        <div class="solution-content">
-          <div class="solution-kicker">自动识别重叠区域</div>
-          <h2 class="solution-title">去掉重复，拼成一张连续长图</h2>
-          <div class="merge-stage">
-            <div class="source-stack" aria-hidden="true">
-              <div class="source-card">
-                <span class="mini-line"></span><span class="mini-line"></span
-                ><span class="mini-line accent"></span><span class="mini-line"></span>
+        <span class="edge-rule"></span>
+        <div class="overlap-content">
+          <div class="overlap-title-row">
+            <div>
+              <h2 class="scene-title">原图存在重复区域</h2>
+              <p class="scene-subtitle">相邻截图里，同一段内容会出现两次</p>
+            </div>
+            <div class="overlap-badge">8 张原图</div>
+          </div>
+          <div class="overlap-stage" id="overlap-stage"></div>
+          <div class="repeat-connector">相同内容被重复截入</div>
+        </div>
+      </section>
+
+      <section
+        id="scene-process"
+        class="scene clip"
+        data-start="5"
+        data-duration="5"
+        data-track-index="3"
+        data-layout-allow-overlap
+        data-layout-allow-occlusion
+      >
+        <div class="scene-fill"></div>
+        <div class="topbar">
+          <div class="brand"><span class="brand-mark"></span>青缝长图拼接</div>
+          <div class="timecode mono">00:05–00:10</div>
+        </div>
+        <span class="edge-rule"></span>
+        <div class="process-content">
+          <div class="process-copy">
+            <h2 class="scene-title" id="process-title">选择 8 张连续截图</h2>
+            <p class="scene-subtitle" id="process-subtitle">从相册选择，自动识别重叠并拼接</p>
+          </div>
+          <div class="phone">
+            <div class="phone-bar">
+              <span class="phone-notch"></span>
+              青缝长图拼接
+            </div>
+            <div class="phone-layer home-layer">
+              <div class="home-icon"></div>
+              <div class="home-copy">
+                <span>选择连续截图</span>
+                <span>系统会自动识别重复区域</span>
               </div>
-              <div class="source-card">
-                <span class="mini-line accent"></span><span class="mini-line"></span
-                ><span class="mini-line"></span><span class="mini-line"></span>
-              </div>
-              <div class="source-card">
-                <span class="mini-line"></span><span class="mini-line accent"></span
-                ><span class="mini-line"></span><span class="mini-line"></span>
+              <div class="select-button">
+                从相册选择
+                <span class="click-ripple"></span>
               </div>
             </div>
-            <div class="merge-arrow" aria-hidden="true">
-              <span class="arrow-line"></span>
-              <span class="arrow-head"></span>
+            <div class="phone-layer album-layer">
+              <div class="album-head">
+                <span>最近项目</span>
+                <span class="selected-count">已选 0/8</span>
+              </div>
+              <div class="album-grid" id="album-grid"></div>
             </div>
-            <div class="result-card">
-              <div class="result-head" id="result-head"></div>
-              <div class="result-body" id="result-body"></div>
-              <svg class="stitch-path" viewBox="0 0 410 680" aria-hidden="true">
-                <path id="stitch-path-line" d="M392 16 V664"></path>
-              </svg>
+            <div class="phone-layer merge-layer">
+              <div class="merge-status">正在自动识别重叠区域</div>
+              <div class="merge-stack" id="merge-stack">
+                <div class="merged-preview">
+                  <div class="merged-preview-head">拼接完成</div>
+                  <div id="merged-preview-body"></div>
+                </div>
+              </div>
+              <div class="progress-track"><span class="progress-fill"></span></div>
+              <div class="progress-label">正在处理 0%</div>
             </div>
           </div>
-          <div class="privacy-pill">
-            <span class="privacy-lock"></span>图片仅在本机处理，不上传
+          <div class="demo-cursor"></div>
+        </div>
+      </section>
+
+      <section
+        id="scene-scroll"
+        class="scene clip"
+        data-start="10"
+        data-duration="3"
+        data-track-index="4"
+        data-layout-allow-overlap
+        data-layout-allow-occlusion
+      >
+        <div class="scene-fill"></div>
+        <div class="topbar">
+          <div class="brand"><span class="brand-mark"></span>青缝长图拼接</div>
+          <div class="timecode mono">00:10–00:13</div>
+        </div>
+        <span class="edge-rule"></span>
+        <div class="scroll-copy">
+          <h2 class="scene-title">最终长图，顺着看完</h2>
+          <p class="scene-subtitle">八张截图的有效内容，已经连成一张</p>
+        </div>
+        <div class="scroll-phone">
+          <div class="scroll-header" id="scroll-result-head"></div>
+          <div class="scroll-window">
+            <div class="scroll-content" id="scroll-content"></div>
           </div>
-          <div class="benefits">
-            <div class="benefit">自动识别重复</div>
-            <div class="benefit">自动裁切边缘</div>
-            <div class="benefit">2–20 张连续截图</div>
-          </div>
+          <span class="scroll-indicator"></span>
         </div>
       </section>
 
       <section
         id="scene-cta"
         class="scene clip"
-        data-start="10.3"
-        data-duration="4.7"
-        data-track-index="3"
+        data-start="13"
+        data-duration="2"
+        data-track-index="5"
+        data-layout-allow-overlap
+        data-layout-allow-occlusion
       >
-        <div class="cta-fill"></div>
-        <div class="cta-frame"></div>
-        <div class="poster-wrap">
+        <div class="scene-fill cta-fill"></div>
+        <div class="cta-card"></div>
+        <div class="cta-title">青缝长图拼接</div>
+        <div class="poster-shell">
           <img
             class="poster"
             src="assets/qingfeng-long-image-poster-v2.png"
             alt="青缝长图拼接正式小程序码海报"
           />
         </div>
-        <div class="cta-label">微信搜索「青缝长图拼接」</div>
+        <div class="privacy">图片仅在本机处理</div>
+        <div class="cta-note">微信搜索小程序，或长按识别正式小程序码</div>
       </section>
-
-      <div
-        id="transition-one"
-        class="transition clip"
-        data-start="3.55"
-        data-duration="0.75"
-        data-track-index="10"
-      >
-        <div class="wipe-panel"></div>
-        <span class="wipe-thread"></span>
-      </div>
-
-      <div
-        id="transition-two"
-        class="transition clip"
-        data-start="10.05"
-        data-duration="0.75"
-        data-track-index="11"
-      >
-        <div class="wipe-panel"></div>
-        <span class="wipe-thread"></span>
-      </div>
     </div>
 
     <script>
       const scenarios = {
         chat: {
-          title: "聊天记录太长，三张截图还在重复",
-          subtitle: "群聊、工作交接、旅行安排，保存下来却总有重复消息。",
-          shotTitle: ["聊天截图 01", "聊天截图 02", "聊天截图 03"],
-          shots: [
-            ["周六集合时间改到 9:30", "路线已经发群里啦", "记得带充电宝"],
-            ["路线已经发群里啦", "记得带充电宝", "收到，我提前十分钟到"],
-            ["记得带充电宝", "收到，我提前十分钟到", "到站后在南门集合"]
-          ],
+          label: "聊天截图",
           resultHead: "完整聊天记录",
-          result: [
+          items: [
             "周六集合时间改到 9:30",
             "路线已经发群里啦",
             "记得带充电宝",
             "收到，我提前十分钟到",
-            "到站后在南门集合"
+            "到站后在南门集合",
+            "午餐位置已经预订",
+            "下午三点参观展览",
+            "返程车次保持不变",
+            "照片整理后发给大家",
+            "行程确认完成"
           ]
         },
         web: {
-          title: "网页教程分三屏，重点内容被切断",
-          subtitle: "教程、攻略、菜谱和说明页，一张图看不完，截图又互相重叠。",
-          shotTitle: ["教程截图 01", "教程截图 02", "教程截图 03"],
-          shots: [
-            ["步骤 1：准备所需材料", "确认软件已经更新", "打开设置页面"],
-            ["确认软件已经更新", "打开设置页面", "步骤 2：调整参数"],
-            ["打开设置页面", "步骤 2：调整参数", "步骤 3：导出结果"]
-          ],
+          label: "教程截图",
           resultHead: "完整网页教程",
-          result: [
+          items: [
             "步骤 1：准备所需材料",
             "确认软件已经更新",
             "打开设置页面",
             "步骤 2：调整参数",
-            "步骤 3：导出结果"
+            "保存当前配置",
+            "检查预览结果",
+            "步骤 3：导出文件",
+            "核对文件尺寸",
+            "保存到指定目录",
+            "教程步骤完成"
           ]
         },
         study: {
-          title: "学习笔记跨三页，复习还要来回翻",
-          subtitle: "网课讲义、知识点和例题，拼成一张长图才能顺着看。",
-          shotTitle: ["笔记截图 01", "笔记截图 02", "笔记截图 03"],
-          shots: [
-            ["定义：边际效用", "核心条件与假设", "例题：如何判断变化"],
-            ["核心条件与假设", "例题：如何判断变化", "推导过程与图示"],
-            ["例题：如何判断变化", "推导过程与图示", "结论：关注变化率"]
-          ],
+          label: "笔记截图",
           resultHead: "完整学习笔记",
-          result: [
+          items: [
             "定义：边际效用",
             "核心条件与假设",
             "例题：如何判断变化",
             "推导过程与图示",
-            "结论：关注变化率"
+            "结论：关注变化率",
+            "补充概念与辨析",
+            "常见错误整理",
+            "练习题一与解析",
+            "练习题二与解析",
+            "本章复习完成"
           ]
         },
         checklist: {
-          title: "订单和清单分散，核对时容易漏项",
-          subtitle: "行程、采购和待办截图，合成长图后才能一次核对。",
-          shotTitle: ["清单截图 01", "清单截图 02", "清单截图 03"],
-          shots: [
-            ["证件与车票", "充电器与移动电源", "雨伞与常用药"],
-            ["充电器与移动电源", "雨伞与常用药", "确认入住时间"],
-            ["雨伞与常用药", "确认入住时间", "保存目的地地址"]
-          ],
+          label: "清单截图",
           resultHead: "完整订单与清单",
-          result: [
+          items: [
             "证件与车票",
             "充电器与移动电源",
             "雨伞与常用药",
             "确认入住时间",
-            "保存目的地地址"
+            "保存目的地地址",
+            "核对订单编号",
+            "准备换洗衣物",
+            "确认返程时间",
+            "检查随身物品",
+            "清单核对完成"
           ]
         }
       };
@@ -853,293 +1141,264 @@
           : { scenario: "chat" };
       const current = scenarios[values.scenario] || scenarios.chat;
 
-      document.getElementById("problem-title").textContent = current.title;
-      document.getElementById("problem-subtitle").textContent = current.subtitle;
-      document.getElementById("result-head").textContent = current.resultHead;
+      function appendTextCard(parent, className, text) {
+        const element = document.createElement("div");
+        element.className = className;
+        element.textContent = text;
+        parent.appendChild(element);
+        return element;
+      }
 
-      const shotsStage = document.getElementById("shots-stage");
-      current.shots.forEach((rows, shotIndex) => {
+      const eightGrid = document.getElementById("eight-grid");
+      current.items.slice(0, 8).forEach((text, index) => {
         const card = document.createElement("div");
-        card.className = `shot shot-${String.fromCharCode(97 + shotIndex)}`;
-        card.setAttribute("data-layout-allow-overlap", "");
-        card.setAttribute("data-layout-allow-occlusion", "");
-        card.setAttribute("data-layout-allow-overflow", "");
-        const head = document.createElement("div");
-        head.className = "shot-head mono";
-        head.textContent = current.shotTitle[shotIndex];
-        const body = document.createElement("div");
-        body.className = "shot-body";
-        rows.forEach((text, rowIndex) => {
-          const row = document.createElement("div");
-          const repeated =
-            (shotIndex === 0 && rowIndex >= 1) ||
-            (shotIndex === 1 && rowIndex <= 1) ||
-            (shotIndex === 1 && rowIndex === 2) ||
-            (shotIndex === 2 && rowIndex === 0);
-          row.className = `mock-row${repeated ? " repeat" : ""}`;
-          row.textContent = text;
-          if (repeated) {
-            const tag = document.createElement("span");
-            tag.className = "repeat-tag";
-            tag.setAttribute("data-layout-allow-overlap", "");
-            tag.setAttribute("data-layout-allow-occlusion", "");
-            tag.textContent = "重复";
-            row.appendChild(tag);
-          }
-          body.appendChild(row);
-        });
-        card.append(head, body);
-        shotsStage.appendChild(card);
+        card.className = "count-thumb";
+        card.innerHTML =
+          `<div class="thumb-number mono">${String(index + 1).padStart(2, "0")}/08</div>` +
+          `<span class="thumb-line"></span><span class="thumb-line short"></span>` +
+          `<div class="thumb-copy">${text}</div>`;
+        eightGrid.appendChild(card);
       });
 
-      const resultBody = document.getElementById("result-body");
-      current.result.forEach((text) => {
-        const row = document.createElement("div");
-        row.className = "result-row";
-        row.textContent = text;
-        resultBody.appendChild(row);
+      const countResultBody = document.getElementById("count-result-body");
+      current.items.slice(0, 8).forEach((text) => {
+        appendTextCard(countResultBody, "count-result-row", text);
+      });
+
+      const overlapStage = document.getElementById("overlap-stage");
+      const overlapSets = [
+        [current.items[0], current.items[1], current.items[2]],
+        [current.items[2], current.items[3], current.items[4]],
+        [current.items[4], current.items[5], current.items[6]]
+      ];
+      overlapSets.forEach((rows, cardIndex) => {
+        const card = document.createElement("div");
+        card.className = "overlap-card";
+        card.setAttribute("data-layout-allow-overlap", "");
+        card.setAttribute("data-layout-allow-occlusion", "");
+        appendTextCard(
+          card,
+          "overlap-card-head mono",
+          `${current.label} ${String(cardIndex + 1).padStart(2, "0")}/08`
+        );
+        const body = document.createElement("div");
+        body.className = "overlap-card-body";
+        rows.forEach((text, rowIndex) => {
+          const repeated =
+            (cardIndex === 0 && rowIndex === 2) ||
+            (cardIndex === 1 && (rowIndex === 0 || rowIndex === 2)) ||
+            (cardIndex === 2 && rowIndex === 0);
+          const row = appendTextCard(
+            body,
+            `overlap-row${repeated ? " repeated" : ""}`,
+            text
+          );
+          if (repeated) {
+            appendTextCard(row, "repeat-label", "重复区域");
+          }
+        });
+        card.appendChild(body);
+        overlapStage.appendChild(card);
+      });
+
+      const albumGrid = document.getElementById("album-grid");
+      current.items.slice(0, 8).forEach((text, index) => {
+        const card = document.createElement("div");
+        card.className = "album-thumb";
+        card.innerHTML =
+          `<div class="album-thumb-title mono">${current.label} ${String(index + 1).padStart(2, "0")}</div>` +
+          `<div class="album-thumb-copy">${text}</div>` +
+          `<div class="album-check">✓</div>`;
+        albumGrid.appendChild(card);
+      });
+
+      const mergeStack = document.getElementById("merge-stack");
+      current.items.slice(0, 8).forEach((text, index) => {
+        const card = document.createElement("div");
+        card.className = "merge-mini";
+        card.setAttribute("data-layout-allow-overlap", "");
+        card.setAttribute("data-layout-allow-occlusion", "");
+        card.innerHTML =
+          `<span></span><span></span><span></span>` +
+          `<div class="album-thumb-title mono">${String(index + 1).padStart(2, "0")}/08</div>`;
+        mergeStack.insertBefore(card, mergeStack.querySelector(".merged-preview"));
+      });
+
+      const mergedPreviewBody = document.getElementById("merged-preview-body");
+      current.items.slice(0, 8).forEach((text) => {
+        appendTextCard(mergedPreviewBody, "merged-preview-row", text);
+      });
+
+      document.getElementById("scroll-result-head").textContent = current.resultHead;
+      const scrollContent = document.getElementById("scroll-content");
+      scrollContent.setAttribute("data-layout-allow-overflow", "");
+      appendTextCard(scrollContent, "long-head", current.resultHead);
+      current.items.forEach((text, index) => {
+        const section = document.createElement("div");
+        section.className = "long-section";
+        appendTextCard(
+          section,
+          "long-section-number mono",
+          `${String(index + 1).padStart(2, "0")} / ${String(current.items.length).padStart(2, "0")}`
+        );
+        appendTextCard(section, "long-section-copy", text);
+        scrollContent.appendChild(section);
       });
 
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
 
+      // 0–2 秒：8 张截图 → 1 张长图
+      tl.set("#scene-count .count-headline", { opacity: 1, y: 74 }, 0.04);
+      tl.to("#scene-count .count-headline", { y: 0, duration: 0.22, ease: "power4.out" }, 0.04);
+      tl.set("#scene-count .count-thumb", { opacity: 1 }, 0.22);
       tl.fromTo(
-        "#scene-problem .brand-lockup, #scene-problem .scene-index",
-        { opacity: 0, y: -34 },
-        { opacity: 1, y: 0, duration: 0.5, stagger: 0.08, ease: "power3.out" },
-        0.05
+        "#scene-count .count-thumb",
+        { x: (index) => (index % 2 === 0 ? -180 : 180), y: 120, scale: 0.72 },
+        { x: 0, y: 0, scale: 1, duration: 0.42, stagger: 0.045, ease: "power3.out" },
+        0.22
       );
+      tl.set("#scene-count .count-arrow", { opacity: 1, scale: 0.55 }, 0.72);
+      tl.to("#scene-count .count-arrow", { scale: 1, duration: 0.25, ease: "back.out(1.4)" }, 0.72);
+      tl.set("#scene-count .count-result", { opacity: 1, x: -80, scale: 0.84 }, 0.76);
+      tl.to("#scene-count .count-result", { x: 0, scale: 1, duration: 0.44, ease: "power4.out" }, 0.76);
+
+      // 2–5 秒：原图存在重复区域
+      tl.set("#scene-overlap .scene-title, #scene-overlap .scene-subtitle, #scene-overlap .overlap-badge, #scene-overlap .overlap-card, #scene-overlap .repeat-connector", { opacity: 0 }, 2);
+      tl.set("#scene-overlap .scene-title", { opacity: 1, y: 78 }, 2.05);
+      tl.to("#scene-overlap .scene-title", { y: 0, duration: 0.22, ease: "power4.out" }, 2.05);
+      tl.set("#scene-overlap .scene-subtitle, #scene-overlap .overlap-badge", { opacity: 1 }, 2.21);
       tl.fromTo(
-        "#scene-problem .eyebrow",
-        { opacity: 0, x: -70 },
-        { opacity: 1, x: 0, duration: 0.48, ease: "power2.out" },
-        0.16
+        "#scene-overlap .scene-subtitle, #scene-overlap .overlap-badge",
+        { x: (index) => (index === 0 ? -70 : 70) },
+        { x: 0, duration: 0.3, stagger: 0.04, ease: "power3.out" },
+        2.21
       );
+      tl.set("#scene-overlap .overlap-card", { opacity: 1 }, 2.42);
       tl.fromTo(
-        "#scene-problem .hero-title",
-        { opacity: 0, y: 90, scale: 0.94 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.68, ease: "power4.out" },
-        0.28
-      );
-      tl.fromTo(
-        "#scene-problem .hero-subtitle",
-        { opacity: 0, x: 72 },
-        { opacity: 1, x: 0, duration: 0.56, ease: "power2.out" },
-        0.64
-      );
-      tl.fromTo(
-        "#scene-problem .shot",
-        { opacity: 0, y: 250, scale: 0.78, rotation: -16 },
+        "#scene-overlap .overlap-card",
+        { y: 300, scale: 0.72, rotation: -14 },
         {
-          opacity: 1,
           y: 0,
           scale: 1,
-          rotation: (index) => [-8, 3, 9][index],
-          duration: 0.72,
-          stagger: 0.12,
-          ease: "back.out(1.35)"
-        },
-        0.82
-      );
-      tl.fromTo(
-        "#scene-problem .mock-row.repeat",
-        { opacity: 0.3, scaleX: 0.72 },
-        {
-          opacity: 1,
-          scaleX: 1,
-          transformOrigin: "left center",
-          duration: 0.45,
-          stagger: 0.08,
-          ease: "power2.out"
-        },
-        1.62
-      );
-      tl.fromTo(
-        "#scene-problem .problem-note",
-        { opacity: 0, x: 60 },
-        { opacity: 1, x: 0, duration: 0.44, ease: "power3.out" },
-        2.08
-      );
-      tl.fromTo(
-        "#scene-problem .stitch-dot",
-        { scale: 0.72 },
-        {
-          scale: 1.12,
-          duration: 0.55,
-          stagger: 0.12,
-          repeat: 3,
-          yoyo: true,
-          ease: "sine.inOut"
-        },
-        0.4
-      );
-
-      tl.fromTo(
-        "#transition-one .wipe-panel",
-        { scaleX: 0 },
-        { scaleX: 1, duration: 0.34, ease: "power3.in" },
-        3.55
-      );
-      tl.fromTo(
-        "#transition-one .wipe-thread",
-        { scaleX: 0, x: -160 },
-        { scaleX: 1, x: 0, duration: 0.34, ease: "power2.in" },
-        3.55
-      );
-      tl.to(
-        "#transition-one .wipe-panel",
-        { scaleX: 0, transformOrigin: "right center", duration: 0.38, ease: "power3.out" },
-        3.9
-      );
-      tl.to(
-        "#transition-one .wipe-thread",
-        { scaleX: 0, transformOrigin: "right center", duration: 0.38, ease: "power2.out" },
-        3.9
-      );
-
-      tl.fromTo(
-        "#scene-solution .brand-lockup, #scene-solution .scene-index",
-        { opacity: 0, y: -34 },
-        { opacity: 1, y: 0, duration: 0.46, stagger: 0.08, ease: "power3.out" },
-        3.94
-      );
-      tl.fromTo(
-        "#scene-solution .solution-kicker",
-        { opacity: 0, x: -70 },
-        { opacity: 1, x: 0, duration: 0.46, ease: "power2.out" },
-        4.04
-      );
-      tl.fromTo(
-        "#scene-solution .solution-title",
-        { opacity: 0, y: 80, scale: 0.95 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.68, ease: "power4.out" },
-        4.18
-      );
-      tl.fromTo(
-        "#scene-solution .source-card",
-        { opacity: 0, x: -170, y: 90, scale: 0.72, rotation: -18 },
-        {
-          opacity: 1,
-          x: 0,
-          y: 0,
-          scale: 1,
-          rotation: (index) => [-7, 5, -3][index],
-          duration: 0.62,
+          rotation: (index) => [-7, 2, 8][index],
+          duration: 0.52,
           stagger: 0.12,
           ease: "power3.out"
         },
-        4.72
+        2.42
       );
       tl.fromTo(
-        "#scene-solution .arrow-line",
-        { scaleX: 0 },
-        { scaleX: 1, duration: 0.42, ease: "power2.out" },
-        5.3
+        "#scene-overlap .overlap-row.repeated",
+        { scaleX: 0.76, opacity: 0.35 },
+        { scaleX: 1, opacity: 1, duration: 0.3, stagger: 0.11, ease: "power2.out" },
+        3.32
       );
-      tl.fromTo(
-        "#scene-solution .arrow-head",
-        { opacity: 0, x: -34, scale: 0.5 },
-        { opacity: 1, x: 0, scale: 1, duration: 0.42, ease: "back.out(1.5)" },
-        5.46
-      );
-      tl.fromTo(
-        "#scene-solution .result-card",
-        { opacity: 0, x: 130, scale: 0.82 },
-        { opacity: 1, x: 0, scale: 1, duration: 0.68, ease: "power4.out" },
-        5.62
-      );
-      tl.fromTo(
-        "#scene-solution .result-row",
-        { opacity: 0, y: 42 },
-        { opacity: 1, y: 0, duration: 0.42, stagger: 0.1, ease: "power3.out" },
-        6.04
-      );
-      tl.fromTo(
-        "#stitch-path-line",
-        { strokeDashoffset: 680 },
-        { strokeDashoffset: 0, duration: 1.15, ease: "power2.inOut" },
-        6.1
-      );
-      tl.set("#scene-solution .privacy-pill", { opacity: 0 }, 3.8);
-      tl.set("#scene-solution .privacy-pill", { opacity: 1 }, 7.35);
-      tl.fromTo(
-        "#scene-solution .privacy-pill",
-        { y: 68, scale: 0.92 },
-        { y: 0, scale: 1, duration: 0.58, ease: "back.out(1.28)" },
-        7.35
-      );
-      tl.fromTo(
-        "#scene-solution .benefit",
-        { opacity: 0, y: 54 },
-        { opacity: 1, y: 0, duration: 0.46, stagger: 0.1, ease: "power3.out" },
-        7.78
-      );
-      tl.fromTo(
-        "#scene-solution .stitch-dot",
-        { y: -8 },
-        {
-          y: 8,
-          duration: 0.72,
-          stagger: 0.12,
-          repeat: 3,
-          yoyo: true,
-          ease: "sine.inOut"
-        },
-        4.1
-      );
+      tl.set("#scene-overlap .repeat-connector", { opacity: 1, y: 70 }, 4.08);
+      tl.to("#scene-overlap .repeat-connector", { y: 0, duration: 0.34, ease: "back.out(1.3)" }, 4.08);
 
+      // 5–10 秒：模拟选图、自动拼接
+      tl.set("#scene-process .scene-title, #scene-process .scene-subtitle, #scene-process .phone", { opacity: 0 }, 5);
+      tl.set("#scene-process .scene-title", { opacity: 1, y: 72 }, 5.04);
+      tl.to("#scene-process .scene-title", { y: 0, duration: 0.22, ease: "power4.out" }, 5.04);
+      tl.set("#scene-process .scene-subtitle", { opacity: 1, x: -70 }, 5.18);
+      tl.to("#scene-process .scene-subtitle", { x: 0, duration: 0.26, ease: "power3.out" }, 5.18);
+      tl.set("#scene-process .phone", { opacity: 1, y: 120, scale: 0.94 }, 5.16);
+      tl.to("#scene-process .phone", { y: 0, scale: 1, duration: 0.42, ease: "power3.out" }, 5.16);
+      tl.set("#scene-process .demo-cursor", { opacity: 1 }, 5.2);
       tl.fromTo(
-        "#transition-two .wipe-panel",
+        "#scene-process .demo-cursor",
+        { x: 180, y: 160, scale: 0.92 },
+        { x: -190, y: 360, scale: 1, duration: 0.52, ease: "power2.inOut" },
+        5.38
+      );
+      tl.to("#scene-process .demo-cursor, #scene-process .select-button", { scale: 0.92, duration: 0.08, repeat: 1, yoyo: true, ease: "power2.in" }, 5.94);
+      tl.set("#scene-process .click-ripple", { opacity: 1 }, 5.96);
+      tl.fromTo(
+        "#scene-process .click-ripple",
+        { scale: 0 },
+        { scale: 5, opacity: 0, duration: 0.46, ease: "power2.out", immediateRender: false },
+        5.96
+      );
+      tl.set("#scene-process .home-layer", { opacity: 0 }, 6.18);
+      tl.set("#scene-process .album-layer", { opacity: 1 }, 6.18);
+      tl.set("#scene-process .demo-cursor", { opacity: 0 }, 6.22);
+      tl.set("#scene-process .album-check", { opacity: 0, scale: 0.3 }, 6.18);
+      document.querySelectorAll("#scene-process .album-check").forEach((element, index) => {
+        const selectAt = 6.35 + index * 0.14;
+        tl.set(element, { opacity: 1 }, selectAt);
+        tl.to(
+          element,
+          {
+            scale: 1,
+            backgroundColor: "#078e83",
+            color: "#ffffff",
+            duration: 0.18,
+            ease: "back.out(1.45)"
+          },
+          selectAt
+        );
+        tl.set(
+          "#scene-process .selected-count",
+          { innerText: `已选 ${index + 1}/8` },
+          selectAt
+        );
+      });
+      tl.set("#process-title", { innerText: "已选择 8 张截图" }, 7.55);
+      tl.set("#scene-process .album-layer", { opacity: 0 }, 7.86);
+      tl.set("#scene-process .merge-layer", { opacity: 1 }, 7.86);
+      tl.set("#process-title", { innerText: "自动识别重叠并拼接" }, 7.86);
+      tl.set("#process-subtitle", { innerText: "图片在本机完成处理" }, 7.86);
+      document.querySelectorAll("#scene-process .merge-mini").forEach((element, index) => {
+        const targetX = [-230, -80, 80, 230, -230, -80, 80, 230][index];
+        const targetY = [-240, -240, -240, -240, 220, 220, 220, 220][index];
+        tl.fromTo(
+          element,
+          { opacity: 1, x: targetX, y: targetY, scale: 1 },
+          { x: 0, y: 0, scale: 0.58, duration: 0.74, ease: "power3.inOut" },
+          7.94 + index * 0.035
+        );
+      });
+      tl.fromTo(
+        "#scene-process .progress-fill",
         { scaleX: 0 },
-        { scaleX: 1, duration: 0.34, ease: "power3.in" },
-        10.05
+        { scaleX: 1, duration: 1.35, ease: "power2.inOut" },
+        8.02
       );
-      tl.fromTo(
-        "#transition-two .wipe-thread",
-        { scaleX: 0, x: -160 },
-        { scaleX: 1, x: 0, duration: 0.34, ease: "power2.in" },
-        10.05
-      );
+      tl.to("#scene-process .progress-label", { innerText: "正在处理 100%", duration: 1.35, ease: "none" }, 8.02);
+      tl.set("#scene-process .merged-preview", { opacity: 1, scale: 0.72 }, 8.08);
       tl.to(
-        "#transition-two .wipe-panel",
-        { scaleX: 0, transformOrigin: "right center", duration: 0.38, ease: "power3.out" },
-        10.4
+        "#scene-process .merged-preview",
+        { scale: 0.88, duration: 1.05, ease: "power2.out" },
+        8.08
       );
-      tl.to(
-        "#transition-two .wipe-thread",
-        { scaleX: 0, transformOrigin: "right center", duration: 0.38, ease: "power2.out" },
-        10.4
-      );
+      tl.to("#scene-process .merge-mini", { opacity: 0, duration: 0.18, stagger: 0.025, ease: "power1.out" }, 9.18);
+      tl.set("#scene-process .merged-preview", { opacity: 1, scale: 0.88 }, 9.22);
+      tl.to("#scene-process .merged-preview", { scale: 1, duration: 0.36, ease: "back.out(1.3)" }, 9.22);
+      tl.set("#scene-process .merge-status", { innerText: "拼接完成：8 张 → 1 张" }, 9.34);
+      tl.set("#scene-process .progress-label", { innerText: "已完成" }, 9.34);
 
-      tl.fromTo(
-        "#scene-cta .cta-frame",
-        { opacity: 0, scale: 0.9 },
-        { opacity: 1, scale: 1, duration: 0.52, ease: "power3.out" },
-        10.42
-      );
-      tl.fromTo(
-        "#scene-cta .poster-wrap",
-        { opacity: 0, y: 110, scale: 0.88 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.72, ease: "back.out(1.25)" },
-        10.48
-      );
-      tl.fromTo(
-        "#scene-cta .cta-label",
-        { opacity: 0, y: 70 },
-        { opacity: 1, y: 0, duration: 0.58, ease: "power3.out" },
-        11.02
-      );
-      tl.to(
-        "#scene-cta .cta-frame",
-        {
-          scale: 1.008,
-          duration: 0.9,
-          repeat: 2,
-          yoyo: true,
-          ease: "sine.inOut"
-        },
-        11.32
-      );
+      // 10–13 秒：滚动最终长图
+      tl.set("#scene-scroll .scene-title, #scene-scroll .scene-subtitle, #scene-scroll .scroll-phone", { opacity: 0 }, 10);
+      tl.set("#scene-scroll .scene-title", { opacity: 1, y: 72 }, 10.03);
+      tl.to("#scene-scroll .scene-title", { y: 0, duration: 0.22, ease: "power4.out" }, 10.03);
+      tl.set("#scene-scroll .scene-subtitle", { opacity: 1, x: 70 }, 10.17);
+      tl.to("#scene-scroll .scene-subtitle", { x: 0, duration: 0.25, ease: "power3.out" }, 10.17);
+      tl.set("#scene-scroll .scroll-phone", { opacity: 1, y: 110, scale: 0.95 }, 10.18);
+      tl.to("#scene-scroll .scroll-phone", { y: 0, scale: 1, duration: 0.38, ease: "power3.out" }, 10.18);
+      tl.fromTo("#scene-scroll .scroll-content", { y: 0 }, { y: -850, duration: 2.25, ease: "power3.out" }, 10.55);
+      tl.fromTo("#scene-scroll .scroll-indicator", { y: 0, scaleY: 1 }, { y: 770, scaleY: 0.56, duration: 2.25, ease: "power3.out" }, 10.55);
+
+      // 13–15 秒：品牌、正式小程序码、本机处理
+      tl.set("#scene-cta .cta-card, #scene-cta .cta-title, #scene-cta .poster-shell, #scene-cta .privacy, #scene-cta .cta-note", { opacity: 0 }, 13);
+      tl.set("#scene-cta .cta-card", { opacity: 1, scale: 0.94 }, 13.02);
+      tl.to("#scene-cta .cta-card", { scale: 1, duration: 0.25, ease: "power3.out" }, 13.02);
+      tl.set("#scene-cta .cta-title", { opacity: 1, y: 64 }, 13.06);
+      tl.to("#scene-cta .cta-title", { y: 0, duration: 0.22, ease: "power4.out" }, 13.06);
+      tl.set("#scene-cta .poster-shell", { opacity: 1, y: 90, scale: 0.9 }, 13.12);
+      tl.to("#scene-cta .poster-shell", { y: 0, scale: 1, duration: 0.34, ease: "back.out(1.25)" }, 13.12);
+      tl.set("#scene-cta .privacy, #scene-cta .cta-note", { opacity: 1, y: 55 }, 13.33);
+      tl.to("#scene-cta .privacy, #scene-cta .cta-note", { y: 0, duration: 0.28, stagger: 0.06, ease: "power3.out" }, 13.33);
 
       window.__timelines["main"] = tl;
     </script>

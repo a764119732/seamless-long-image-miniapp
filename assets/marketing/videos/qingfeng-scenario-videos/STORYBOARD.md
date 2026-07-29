@@ -3,7 +3,7 @@ workflow: general-video
 flow: automation
 storyboard: no
 mode: autonomous
-message: "把多张连续截图自动识别重叠并拼成一张长图，图片仅在本机处理"
+message: "8张连续截图自动识别重复区域并拼成1张长图，图片仅在本机处理"
 audience: "需要整理连续截图的微信用户"
 aspect: "1080x1920"
 duration: "15s"
@@ -12,26 +12,44 @@ duration: "15s"
 ## Frame 1
 
 status: outline
-src: index.html#scene-problem
-motion: waterfall-entry + split-tilt-cards + sine-wave-loop
-time: 0.0–4.2s
+src: index.html#scene-count
+motion: center-outward-expansion + waterfall-entry
+time: 0.0–2.0s
 
-场景痛点直接出现：三张连续截图错位叠放，相邻截图的重复区域被青绿色标记。标题根据聊天记录、网页教程、学习笔记或订单/清单切换。
+八张场景化截图缩略图从左侧聚拢，对应右侧一张连续长图。主文案严格显示“8张截图 → 1张长图”。
 
 ## Frame 2
 
 status: outline
-src: index.html#scene-solution
-motion: center-outward-expansion + svg-path-draw + waterfall-entry
-time: 3.8–10.7s
+src: index.html#scene-overlap
+motion: waterfall-entry
+time: 2.0–5.0s
 
-三张截图向中心对齐，缝线沿重叠处绘制，右侧生成一张去重后的连续长图。明确展示“自动识别重复、自动裁切、一键长图”和“图片仅在本机处理，不上传”。
+三张代表性原图错位叠放，相邻截图中的相同内容用青绿色框和“重复区域”标记，说明八张原图存在重复内容。
 
 ## Frame 3
 
 status: outline
-src: index.html#scene-cta
-motion: spring-pop-entrance + ambient-glow-bloom
-time: 10.3–15.0s
+src: index.html#scene-process
+motion: cursor-click-ripple + center-outward-expansion
+time: 5.0–10.0s
 
-未经修改的正式宣传海报完整进入画面并停留，保留足够时间识别小程序码。
+模拟小程序操作：点击“从相册选择”，进入相册并依次勾选八张连续截图，随后显示自动识别重叠和拼接完成进度。
+
+## Frame 4
+
+status: outline
+src: index.html#scene-scroll
+motion: 3d-page-scroll
+time: 10.0–13.0s
+
+最终长图在手机视窗内从顶部平稳滚动到底部，内容与前面八张截图对应。
+
+## Frame 5
+
+status: outline
+src: index.html#scene-cta
+motion: spring-pop-entrance
+time: 13.0–15.0s
+
+完整、未裁切、未变形的正式小程序码海报进入画面；同时显示“青缝长图拼接”和“图片仅在本机处理”。
