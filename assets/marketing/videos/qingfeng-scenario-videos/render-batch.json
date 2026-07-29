@@ -1,0 +1,8 @@
+{
+  "rows": [
+    { "scenario": "chat" },
+    { "scenario": "web" },
+    { "scenario": "study" },
+    { "scenario": "checklist" }
+  ]
+}

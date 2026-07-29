@@ -1,0 +1,1147 @@
+<!doctype html>
+<html
+  lang="zh-CN"
+  data-composition-variables='[
+    {
+      "id": "scenario",
+      "type": "enum",
+      "label": "宣传场景",
+      "default": "chat",
+      "options": [
+        {"value": "chat", "label": "聊天记录"},
+        {"value": "web", "label": "网页教程"},
+        {"value": "study", "label": "学习笔记"},
+        {"value": "checklist", "label": "订单与清单"}
+      ]
+    }
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="assets/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Microsoft YaHei";
+        src: local("Microsoft YaHei");
+        font-style: normal;
+        font-weight: 400 900;
+      }
+
+      :root {
+        --bg: #ffffff;
+        --fg: #101211;
+        --accent: #08a99b;
+        --accent-pressed: #078e83;
+        --secondary: #747b78;
+        --border: #e5e9e7;
+        --soft: #f3f8f7;
+        --warning-soft: #fff1ee;
+        --warning: #e66a55;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        margin: 0;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--fg);
+      }
+
+      body {
+        font-family: "Microsoft YaHei", Arial, sans-serif;
+      }
+
+      .mono {
+        font-family: "JetBrains Mono", "Microsoft YaHei", monospace;
+        font-variant-numeric: tabular-nums;
+      }
+
+      #root {
+        position: relative;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+      }
+
+      .scene,
+      .transition {
+        position: absolute;
+        inset: 0;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+      }
+
+      .scene-fill {
+        position: absolute;
+        inset: 0;
+        background: var(--bg);
+      }
+
+      .scene-grid {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+      }
+
+      .grid-line {
+        position: absolute;
+        background: var(--border);
+        opacity: 0.7;
+      }
+
+      .grid-line.vertical {
+        width: 2px;
+        height: 1920px;
+      }
+
+      .grid-line.horizontal {
+        width: 1080px;
+        height: 2px;
+      }
+
+      .grid-line.v1 {
+        left: 82px;
+      }
+
+      .grid-line.v2 {
+        right: 82px;
+      }
+
+      .grid-line.h1 {
+        top: 168px;
+      }
+
+      .grid-line.h2 {
+        bottom: 148px;
+      }
+
+      .stitch-rail {
+        position: absolute;
+        right: 68px;
+        top: 210px;
+        width: 22px;
+        height: 1240px;
+        border-left: 3px dashed var(--accent);
+        opacity: 0.42;
+      }
+
+      .stitch-dot {
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--accent);
+      }
+
+      .stitch-dot.one {
+        right: 60px;
+        top: 360px;
+      }
+
+      .stitch-dot.two {
+        right: 60px;
+        top: 920px;
+      }
+
+      .stitch-dot.three {
+        right: 60px;
+        top: 1360px;
+      }
+
+      .topbar {
+        position: absolute;
+        top: 64px;
+        left: 72px;
+        right: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 4;
+      }
+
+      .brand-lockup {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        color: var(--accent-pressed);
+        font-size: 30px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .brand-mark {
+        width: 28px;
+        height: 28px;
+        border: 5px solid var(--accent);
+        border-radius: 8px 8px 15px 8px;
+        transform: rotate(-12deg);
+      }
+
+      .scene-index {
+        color: var(--secondary);
+        font-size: 24px;
+        letter-spacing: 0.08em;
+      }
+
+      .problem-content {
+        position: absolute;
+        inset: 0;
+        padding: 210px 76px 100px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 30px;
+        color: var(--warning);
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+      }
+
+      .eyebrow::before {
+        content: "";
+        display: inline-block;
+        width: 58px;
+        height: 5px;
+        border-radius: 5px;
+        background: var(--warning);
+      }
+
+      .hero-title {
+        width: 870px;
+        margin: 0;
+        font-size: 82px;
+        line-height: 1.08;
+        font-weight: 900;
+        letter-spacing: -0.055em;
+      }
+
+      .hero-subtitle {
+        width: 760px;
+        margin: 30px 0 0;
+        color: var(--secondary);
+        font-size: 38px;
+        line-height: 1.55;
+        font-weight: 400;
+      }
+
+      .shots-stage {
+        position: absolute;
+        left: 40px;
+        right: 40px;
+        bottom: 116px;
+        height: 910px;
+        perspective: 1400px;
+      }
+
+      .shot {
+        position: absolute;
+        top: 80px;
+        width: 470px;
+        height: 790px;
+        overflow: hidden;
+        border: 3px solid var(--border);
+        border-radius: 36px;
+        background: var(--bg);
+        box-shadow: 0 26px 72px rgba(16, 18, 17, 0.13);
+        transform-origin: 50% 90%;
+      }
+
+      .shot-a {
+        left: 8px;
+        transform: rotate(-8deg);
+      }
+
+      .shot-b {
+        left: 300px;
+        top: 34px;
+        z-index: 2;
+        transform: rotate(3deg);
+      }
+
+      .shot-c {
+        right: 2px;
+        top: 124px;
+        transform: rotate(9deg);
+      }
+
+      .shot-head {
+        height: 96px;
+        padding: 30px 34px;
+        border-bottom: 3px solid var(--border);
+        color: var(--fg);
+        font-size: 27px;
+        font-weight: 700;
+      }
+
+      .shot-body {
+        padding: 24px 28px;
+      }
+
+      .mock-row {
+        position: relative;
+        min-height: 88px;
+        margin-bottom: 20px;
+        padding: 18px 22px;
+        border-radius: 20px;
+        background: var(--soft);
+        color: var(--fg);
+        font-size: 25px;
+        line-height: 1.4;
+      }
+
+      .mock-row.repeat {
+        border: 3px solid var(--accent);
+        background: var(--bg);
+      }
+
+      .repeat-tag {
+        position: absolute;
+        top: -17px;
+        right: 14px;
+        padding: 6px 14px;
+        border-radius: 18px;
+        background: var(--accent-pressed);
+        color: var(--bg);
+        font-size: 18px;
+        font-weight: 700;
+      }
+
+      .problem-note {
+        position: absolute;
+        right: 74px;
+        bottom: 50px;
+        z-index: 5;
+        color: var(--warning);
+        font-size: 28px;
+        font-weight: 700;
+      }
+
+      .solution-content {
+        position: absolute;
+        inset: 0;
+        padding: 190px 74px 90px;
+      }
+
+      .solution-kicker {
+        color: var(--accent-pressed);
+        font-size: 30px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+      }
+
+      .solution-title {
+        width: 880px;
+        margin: 22px 0 0;
+        font-size: 80px;
+        line-height: 1.08;
+        font-weight: 900;
+        letter-spacing: -0.055em;
+      }
+
+      .merge-stage {
+        position: absolute;
+        top: 590px;
+        left: 74px;
+        right: 74px;
+        height: 950px;
+        display: grid;
+        grid-template-columns: 340px 88px 1fr;
+        align-items: center;
+        gap: 22px;
+      }
+
+      .source-stack {
+        position: relative;
+        width: 340px;
+        height: 720px;
+      }
+
+      .source-card {
+        position: absolute;
+        left: 18px;
+        width: 296px;
+        height: 320px;
+        overflow: hidden;
+        padding: 24px;
+        border: 3px solid var(--border);
+        border-radius: 28px;
+        background: var(--bg);
+        box-shadow: 0 18px 48px rgba(16, 18, 17, 0.1);
+      }
+
+      .source-card:nth-child(1) {
+        top: 0;
+        transform: rotate(-7deg);
+      }
+
+      .source-card:nth-child(2) {
+        top: 194px;
+        left: 4px;
+        z-index: 2;
+        transform: rotate(5deg);
+      }
+
+      .source-card:nth-child(3) {
+        bottom: 0;
+        left: 28px;
+        transform: rotate(-3deg);
+      }
+
+      .mini-line {
+        display: block;
+        width: 100%;
+        height: 30px;
+        margin-bottom: 18px;
+        border-radius: 10px;
+        background: var(--soft);
+      }
+
+      .mini-line.accent {
+        border: 3px solid var(--accent-pressed);
+        background: var(--bg);
+      }
+
+      .merge-arrow {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+        color: var(--accent-pressed);
+      }
+
+      .arrow-line {
+        display: block;
+        width: 70px;
+        height: 8px;
+        border-radius: 8px;
+        background: var(--accent-pressed);
+        transform-origin: left center;
+      }
+
+      .arrow-head {
+        width: 34px;
+        height: 34px;
+        border-top: 8px solid var(--accent-pressed);
+        border-right: 8px solid var(--accent-pressed);
+        transform: rotate(45deg);
+      }
+
+      .result-card {
+        position: relative;
+        width: 462px;
+        height: 820px;
+        overflow: hidden;
+        border: 4px solid var(--accent-pressed);
+        border-radius: 38px;
+        background: var(--bg);
+        box-shadow: 0 28px 82px rgba(8, 169, 155, 0.18);
+      }
+
+      .result-head {
+        height: 98px;
+        padding: 30px 34px;
+        border-bottom: 3px solid var(--border);
+        color: var(--accent-pressed);
+        font-size: 28px;
+        font-weight: 800;
+      }
+
+      .result-body {
+        padding: 24px 28px;
+      }
+
+      .result-row {
+        min-height: 72px;
+        margin-bottom: 16px;
+        padding: 16px 18px;
+        border-radius: 18px;
+        background: var(--soft);
+        font-size: 24px;
+        line-height: 1.45;
+      }
+
+      .stitch-path {
+        position: absolute;
+        left: 26px;
+        top: 102px;
+        width: 410px;
+        height: 680px;
+        pointer-events: none;
+      }
+
+      .stitch-path path {
+        fill: none;
+        stroke: var(--accent-pressed);
+        stroke-width: 4;
+        stroke-dasharray: 12 12;
+        stroke-linecap: round;
+      }
+
+      .benefits {
+        position: absolute;
+        left: 76px;
+        right: 76px;
+        bottom: 92px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+      }
+
+      .benefit {
+        flex: 1;
+        padding: 22px 18px;
+        border: 3px solid var(--border);
+        border-radius: 24px;
+        background: var(--bg);
+        color: var(--fg);
+        text-align: center;
+        font-size: 25px;
+        font-weight: 700;
+      }
+
+      .privacy-pill {
+        position: absolute;
+        left: 74px;
+        bottom: 196px;
+        display: inline-flex;
+        align-items: center;
+        gap: 16px;
+        padding: 20px 28px;
+        border-radius: 28px;
+        background: var(--accent-pressed);
+        color: var(--bg);
+        font-size: 27px;
+        font-weight: 700;
+        box-shadow: 0 16px 42px rgba(8, 169, 155, 0.2);
+      }
+
+      .privacy-lock {
+        position: relative;
+        width: 22px;
+        height: 20px;
+        border: 4px solid var(--bg);
+        border-radius: 5px;
+      }
+
+      .privacy-lock::before {
+        content: "";
+        position: absolute;
+        left: 3px;
+        top: -16px;
+        width: 10px;
+        height: 13px;
+        border: 4px solid var(--bg);
+        border-bottom: 0;
+        border-radius: 8px 8px 0 0;
+      }
+
+      .cta-fill {
+        position: absolute;
+        inset: 0;
+        background: var(--soft);
+      }
+
+      .cta-frame {
+        position: absolute;
+        inset: 42px;
+        border: 4px solid var(--accent);
+        border-radius: 42px;
+        background: var(--bg);
+      }
+
+      .poster-wrap {
+        position: absolute;
+        left: 70px;
+        top: 60px;
+        width: 940px;
+        height: 1660px;
+        overflow: hidden;
+        border-radius: 34px;
+        background: var(--bg);
+        box-shadow: 0 30px 88px rgba(16, 18, 17, 0.15);
+      }
+
+      .poster {
+        display: block;
+        width: 940px;
+        height: 1660px;
+        object-fit: contain;
+      }
+
+      .cta-label {
+        position: absolute;
+        left: 120px;
+        right: 120px;
+        bottom: 66px;
+        padding: 28px 32px;
+        border-radius: 30px;
+        background: var(--accent-pressed);
+        color: var(--bg);
+        text-align: center;
+        font-size: 32px;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+      }
+
+      .transition {
+        z-index: 30;
+        pointer-events: none;
+      }
+
+      .wipe-panel {
+        position: absolute;
+        inset: 0;
+        width: 1080px;
+        height: 1920px;
+        background: var(--accent);
+        transform-origin: left center;
+      }
+
+      .wipe-thread {
+        position: absolute;
+        left: 0;
+        top: 50%;
+        display: block;
+        width: 1080px;
+        height: 8px;
+        background: var(--bg);
+        transform-origin: left center;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="15"
+      data-width="1080"
+      data-height="1920"
+    >
+      <section
+        id="scene-problem"
+        class="scene clip"
+        data-start="0"
+        data-duration="3.85"
+        data-track-index="1"
+        data-layout-allow-overlap
+        data-layout-allow-occlusion
+      >
+        <div class="scene-fill"></div>
+        <div class="scene-grid">
+          <span class="grid-line vertical v1"></span>
+          <span class="grid-line vertical v2"></span>
+          <span class="grid-line horizontal h1"></span>
+          <span class="grid-line horizontal h2"></span>
+          <span class="stitch-rail"></span>
+          <span class="stitch-dot one"></span>
+          <span class="stitch-dot two"></span>
+          <span class="stitch-dot three"></span>
+        </div>
+        <div class="topbar">
+          <div class="brand-lockup"><span class="brand-mark"></span>青缝长图拼接</div>
+          <div class="scene-index mono">01 / 03</div>
+        </div>
+        <div class="problem-content">
+          <div class="eyebrow">连续截图的麻烦</div>
+          <h1 class="hero-title" id="problem-title"></h1>
+          <p class="hero-subtitle" id="problem-subtitle"></p>
+          <div class="shots-stage" id="shots-stage"></div>
+        </div>
+        <div class="problem-note">重复、断裂、难整理</div>
+      </section>
+
+      <section
+        id="scene-solution"
+        class="scene clip"
+        data-start="3.8"
+        data-duration="6.55"
+        data-track-index="2"
+        data-layout-allow-overlap
+        data-layout-allow-occlusion
+      >
+        <div class="scene-fill"></div>
+        <div class="scene-grid">
+          <span class="grid-line vertical v1"></span>
+          <span class="grid-line vertical v2"></span>
+          <span class="grid-line horizontal h1"></span>
+          <span class="grid-line horizontal h2"></span>
+          <span class="stitch-rail"></span>
+          <span class="stitch-dot one"></span>
+          <span class="stitch-dot two"></span>
+          <span class="stitch-dot three"></span>
+        </div>
+        <div class="topbar">
+          <div class="brand-lockup"><span class="brand-mark"></span>青缝长图拼接</div>
+          <div class="scene-index mono">02 / 03</div>
+        </div>
+        <div class="solution-content">
+          <div class="solution-kicker">自动识别重叠区域</div>
+          <h2 class="solution-title">去掉重复，拼成一张连续长图</h2>
+          <div class="merge-stage">
+            <div class="source-stack" aria-hidden="true">
+              <div class="source-card">
+                <span class="mini-line"></span><span class="mini-line"></span
+                ><span class="mini-line accent"></span><span class="mini-line"></span>
+              </div>
+              <div class="source-card">
+                <span class="mini-line accent"></span><span class="mini-line"></span
+                ><span class="mini-line"></span><span class="mini-line"></span>
+              </div>
+              <div class="source-card">
+                <span class="mini-line"></span><span class="mini-line accent"></span
+                ><span class="mini-line"></span><span class="mini-line"></span>
+              </div>
+            </div>
+            <div class="merge-arrow" aria-hidden="true">
+              <span class="arrow-line"></span>
+              <span class="arrow-head"></span>
+            </div>
+            <div class="result-card">
+              <div class="result-head" id="result-head"></div>
+              <div class="result-body" id="result-body"></div>
+              <svg class="stitch-path" viewBox="0 0 410 680" aria-hidden="true">
+                <path id="stitch-path-line" d="M392 16 V664"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="privacy-pill">
+            <span class="privacy-lock"></span>图片仅在本机处理，不上传
+          </div>
+          <div class="benefits">
+            <div class="benefit">自动识别重复</div>
+            <div class="benefit">自动裁切边缘</div>
+            <div class="benefit">2–20 张连续截图</div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="scene-cta"
+        class="scene clip"
+        data-start="10.3"
+        data-duration="4.7"
+        data-track-index="3"
+      >
+        <div class="cta-fill"></div>
+        <div class="cta-frame"></div>
+        <div class="poster-wrap">
+          <img
+            class="poster"
+            src="assets/qingfeng-long-image-poster-v2.png"
+            alt="青缝长图拼接正式小程序码海报"
+          />
+        </div>
+        <div class="cta-label">微信搜索「青缝长图拼接」</div>
+      </section>
+
+      <div
+        id="transition-one"
+        class="transition clip"
+        data-start="3.55"
+        data-duration="0.75"
+        data-track-index="10"
+      >
+        <div class="wipe-panel"></div>
+        <span class="wipe-thread"></span>
+      </div>
+
+      <div
+        id="transition-two"
+        class="transition clip"
+        data-start="10.05"
+        data-duration="0.75"
+        data-track-index="11"
+      >
+        <div class="wipe-panel"></div>
+        <span class="wipe-thread"></span>
+      </div>
+    </div>
+
+    <script>
+      const scenarios = {
+        chat: {
+          title: "聊天记录太长，三张截图还在重复",
+          subtitle: "群聊、工作交接、旅行安排，保存下来却总有重复消息。",
+          shotTitle: ["聊天截图 01", "聊天截图 02", "聊天截图 03"],
+          shots: [
+            ["周六集合时间改到 9:30", "路线已经发群里啦", "记得带充电宝"],
+            ["路线已经发群里啦", "记得带充电宝", "收到，我提前十分钟到"],
+            ["记得带充电宝", "收到，我提前十分钟到", "到站后在南门集合"]
+          ],
+          resultHead: "完整聊天记录",
+          result: [
+            "周六集合时间改到 9:30",
+            "路线已经发群里啦",
+            "记得带充电宝",
+            "收到，我提前十分钟到",
+            "到站后在南门集合"
+          ]
+        },
+        web: {
+          title: "网页教程分三屏，重点内容被切断",
+          subtitle: "教程、攻略、菜谱和说明页，一张图看不完，截图又互相重叠。",
+          shotTitle: ["教程截图 01", "教程截图 02", "教程截图 03"],
+          shots: [
+            ["步骤 1：准备所需材料", "确认软件已经更新", "打开设置页面"],
+            ["确认软件已经更新", "打开设置页面", "步骤 2：调整参数"],
+            ["打开设置页面", "步骤 2：调整参数", "步骤 3：导出结果"]
+          ],
+          resultHead: "完整网页教程",
+          result: [
+            "步骤 1：准备所需材料",
+            "确认软件已经更新",
+            "打开设置页面",
+            "步骤 2：调整参数",
+            "步骤 3：导出结果"
+          ]
+        },
+        study: {
+          title: "学习笔记跨三页，复习还要来回翻",
+          subtitle: "网课讲义、知识点和例题，拼成一张长图才能顺着看。",
+          shotTitle: ["笔记截图 01", "笔记截图 02", "笔记截图 03"],
+          shots: [
+            ["定义：边际效用", "核心条件与假设", "例题：如何判断变化"],
+            ["核心条件与假设", "例题：如何判断变化", "推导过程与图示"],
+            ["例题：如何判断变化", "推导过程与图示", "结论：关注变化率"]
+          ],
+          resultHead: "完整学习笔记",
+          result: [
+            "定义：边际效用",
+            "核心条件与假设",
+            "例题：如何判断变化",
+            "推导过程与图示",
+            "结论：关注变化率"
+          ]
+        },
+        checklist: {
+          title: "订单和清单分散，核对时容易漏项",
+          subtitle: "行程、采购和待办截图，合成长图后才能一次核对。",
+          shotTitle: ["清单截图 01", "清单截图 02", "清单截图 03"],
+          shots: [
+            ["证件与车票", "充电器与移动电源", "雨伞与常用药"],
+            ["充电器与移动电源", "雨伞与常用药", "确认入住时间"],
+            ["雨伞与常用药", "确认入住时间", "保存目的地地址"]
+          ],
+          resultHead: "完整订单与清单",
+          result: [
+            "证件与车票",
+            "充电器与移动电源",
+            "雨伞与常用药",
+            "确认入住时间",
+            "保存目的地地址"
+          ]
+        }
+      };
+
+      const values =
+        window.__hyperframes && window.__hyperframes.getVariables
+          ? window.__hyperframes.getVariables()
+          : { scenario: "chat" };
+      const current = scenarios[values.scenario] || scenarios.chat;
+
+      document.getElementById("problem-title").textContent = current.title;
+      document.getElementById("problem-subtitle").textContent = current.subtitle;
+      document.getElementById("result-head").textContent = current.resultHead;
+
+      const shotsStage = document.getElementById("shots-stage");
+      current.shots.forEach((rows, shotIndex) => {
+        const card = document.createElement("div");
+        card.className = `shot shot-${String.fromCharCode(97 + shotIndex)}`;
+        card.setAttribute("data-layout-allow-overlap", "");
+        card.setAttribute("data-layout-allow-occlusion", "");
+        card.setAttribute("data-layout-allow-overflow", "");
+        const head = document.createElement("div");
+        head.className = "shot-head mono";
+        head.textContent = current.shotTitle[shotIndex];
+        const body = document.createElement("div");
+        body.className = "shot-body";
+        rows.forEach((text, rowIndex) => {
+          const row = document.createElement("div");
+          const repeated =
+            (shotIndex === 0 && rowIndex >= 1) ||
+            (shotIndex === 1 && rowIndex <= 1) ||
+            (shotIndex === 1 && rowIndex === 2) ||
+            (shotIndex === 2 && rowIndex === 0);
+          row.className = `mock-row${repeated ? " repeat" : ""}`;
+          row.textContent = text;
+          if (repeated) {
+            const tag = document.createElement("span");
+            tag.className = "repeat-tag";
+            tag.setAttribute("data-layout-allow-overlap", "");
+            tag.setAttribute("data-layout-allow-occlusion", "");
+            tag.textContent = "重复";
+            row.appendChild(tag);
+          }
+          body.appendChild(row);
+        });
+        card.append(head, body);
+        shotsStage.appendChild(card);
+      });
+
+      const resultBody = document.getElementById("result-body");
+      current.result.forEach((text) => {
+        const row = document.createElement("div");
+        row.className = "result-row";
+        row.textContent = text;
+        resultBody.appendChild(row);
+      });
+
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      tl.fromTo(
+        "#scene-problem .brand-lockup, #scene-problem .scene-index",
+        { opacity: 0, y: -34 },
+        { opacity: 1, y: 0, duration: 0.5, stagger: 0.08, ease: "power3.out" },
+        0.05
+      );
+      tl.fromTo(
+        "#scene-problem .eyebrow",
+        { opacity: 0, x: -70 },
+        { opacity: 1, x: 0, duration: 0.48, ease: "power2.out" },
+        0.16
+      );
+      tl.fromTo(
+        "#scene-problem .hero-title",
+        { opacity: 0, y: 90, scale: 0.94 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.68, ease: "power4.out" },
+        0.28
+      );
+      tl.fromTo(
+        "#scene-problem .hero-subtitle",
+        { opacity: 0, x: 72 },
+        { opacity: 1, x: 0, duration: 0.56, ease: "power2.out" },
+        0.64
+      );
+      tl.fromTo(
+        "#scene-problem .shot",
+        { opacity: 0, y: 250, scale: 0.78, rotation: -16 },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          rotation: (index) => [-8, 3, 9][index],
+          duration: 0.72,
+          stagger: 0.12,
+          ease: "back.out(1.35)"
+        },
+        0.82
+      );
+      tl.fromTo(
+        "#scene-problem .mock-row.repeat",
+        { opacity: 0.3, scaleX: 0.72 },
+        {
+          opacity: 1,
+          scaleX: 1,
+          transformOrigin: "left center",
+          duration: 0.45,
+          stagger: 0.08,
+          ease: "power2.out"
+        },
+        1.62
+      );
+      tl.fromTo(
+        "#scene-problem .problem-note",
+        { opacity: 0, x: 60 },
+        { opacity: 1, x: 0, duration: 0.44, ease: "power3.out" },
+        2.08
+      );
+      tl.fromTo(
+        "#scene-problem .stitch-dot",
+        { scale: 0.72 },
+        {
+          scale: 1.12,
+          duration: 0.55,
+          stagger: 0.12,
+          repeat: 3,
+          yoyo: true,
+          ease: "sine.inOut"
+        },
+        0.4
+      );
+
+      tl.fromTo(
+        "#transition-one .wipe-panel",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.34, ease: "power3.in" },
+        3.55
+      );
+      tl.fromTo(
+        "#transition-one .wipe-thread",
+        { scaleX: 0, x: -160 },
+        { scaleX: 1, x: 0, duration: 0.34, ease: "power2.in" },
+        3.55
+      );
+      tl.to(
+        "#transition-one .wipe-panel",
+        { scaleX: 0, transformOrigin: "right center", duration: 0.38, ease: "power3.out" },
+        3.9
+      );
+      tl.to(
+        "#transition-one .wipe-thread",
+        { scaleX: 0, transformOrigin: "right center", duration: 0.38, ease: "power2.out" },
+        3.9
+      );
+
+      tl.fromTo(
+        "#scene-solution .brand-lockup, #scene-solution .scene-index",
+        { opacity: 0, y: -34 },
+        { opacity: 1, y: 0, duration: 0.46, stagger: 0.08, ease: "power3.out" },
+        3.94
+      );
+      tl.fromTo(
+        "#scene-solution .solution-kicker",
+        { opacity: 0, x: -70 },
+        { opacity: 1, x: 0, duration: 0.46, ease: "power2.out" },
+        4.04
+      );
+      tl.fromTo(
+        "#scene-solution .solution-title",
+        { opacity: 0, y: 80, scale: 0.95 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.68, ease: "power4.out" },
+        4.18
+      );
+      tl.fromTo(
+        "#scene-solution .source-card",
+        { opacity: 0, x: -170, y: 90, scale: 0.72, rotation: -18 },
+        {
+          opacity: 1,
+          x: 0,
+          y: 0,
+          scale: 1,
+          rotation: (index) => [-7, 5, -3][index],
+          duration: 0.62,
+          stagger: 0.12,
+          ease: "power3.out"
+        },
+        4.72
+      );
+      tl.fromTo(
+        "#scene-solution .arrow-line",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.42, ease: "power2.out" },
+        5.3
+      );
+      tl.fromTo(
+        "#scene-solution .arrow-head",
+        { opacity: 0, x: -34, scale: 0.5 },
+        { opacity: 1, x: 0, scale: 1, duration: 0.42, ease: "back.out(1.5)" },
+        5.46
+      );
+      tl.fromTo(
+        "#scene-solution .result-card",
+        { opacity: 0, x: 130, scale: 0.82 },
+        { opacity: 1, x: 0, scale: 1, duration: 0.68, ease: "power4.out" },
+        5.62
+      );
+      tl.fromTo(
+        "#scene-solution .result-row",
+        { opacity: 0, y: 42 },
+        { opacity: 1, y: 0, duration: 0.42, stagger: 0.1, ease: "power3.out" },
+        6.04
+      );
+      tl.fromTo(
+        "#stitch-path-line",
+        { strokeDashoffset: 680 },
+        { strokeDashoffset: 0, duration: 1.15, ease: "power2.inOut" },
+        6.1
+      );
+      tl.set("#scene-solution .privacy-pill", { opacity: 0 }, 3.8);
+      tl.set("#scene-solution .privacy-pill", { opacity: 1 }, 7.35);
+      tl.fromTo(
+        "#scene-solution .privacy-pill",
+        { y: 68, scale: 0.92 },
+        { y: 0, scale: 1, duration: 0.58, ease: "back.out(1.28)" },
+        7.35
+      );
+      tl.fromTo(
+        "#scene-solution .benefit",
+        { opacity: 0, y: 54 },
+        { opacity: 1, y: 0, duration: 0.46, stagger: 0.1, ease: "power3.out" },
+        7.78
+      );
+      tl.fromTo(
+        "#scene-solution .stitch-dot",
+        { y: -8 },
+        {
+          y: 8,
+          duration: 0.72,
+          stagger: 0.12,
+          repeat: 3,
+          yoyo: true,
+          ease: "sine.inOut"
+        },
+        4.1
+      );
+
+      tl.fromTo(
+        "#transition-two .wipe-panel",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.34, ease: "power3.in" },
+        10.05
+      );
+      tl.fromTo(
+        "#transition-two .wipe-thread",
+        { scaleX: 0, x: -160 },
+        { scaleX: 1, x: 0, duration: 0.34, ease: "power2.in" },
+        10.05
+      );
+      tl.to(
+        "#transition-two .wipe-panel",
+        { scaleX: 0, transformOrigin: "right center", duration: 0.38, ease: "power3.out" },
+        10.4
+      );
+      tl.to(
+        "#transition-two .wipe-thread",
+        { scaleX: 0, transformOrigin: "right center", duration: 0.38, ease: "power2.out" },
+        10.4
+      );
+
+      tl.fromTo(
+        "#scene-cta .cta-frame",
+        { opacity: 0, scale: 0.9 },
+        { opacity: 1, scale: 1, duration: 0.52, ease: "power3.out" },
+        10.42
+      );
+      tl.fromTo(
+        "#scene-cta .poster-wrap",
+        { opacity: 0, y: 110, scale: 0.88 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.72, ease: "back.out(1.25)" },
+        10.48
+      );
+      tl.fromTo(
+        "#scene-cta .cta-label",
+        { opacity: 0, y: 70 },
+        { opacity: 1, y: 0, duration: 0.58, ease: "power3.out" },
+        11.02
+      );
+      tl.to(
+        "#scene-cta .cta-frame",
+        {
+          scale: 1.008,
+          duration: 0.9,
+          repeat: 2,
+          yoyo: true,
+          ease: "sine.inOut"
+        },
+        11.32
+      );
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

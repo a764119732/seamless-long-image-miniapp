@@ -4,3 +4,8 @@ miniprogram_npm/
 *.log
 coverage/
 project.private.config.json
+.tools/
+assets/marketing/videos/**/.hyperframes/
+assets/marketing/videos/**/snapshots/
+assets/marketing/videos/**/render*.log
+assets/marketing/videos/**/final/manifest.json

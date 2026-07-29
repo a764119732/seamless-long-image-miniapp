@@ -1,0 +1,14 @@
+{
+  "name": "qingfeng-scenario-videos",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx --yes hyperframes@0.7.80 preview",
+    "check": "npx --yes hyperframes@0.7.80 check",
+    "render": "npx --yes hyperframes@0.7.80 render",
+    "publish": "npx --yes hyperframes@0.7.80 publish"
+  },
+  "devDependencies": {
+    "gsap": "^3.14.2"
+  }
+}
