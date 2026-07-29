@@ -8,10 +8,10 @@
       "label": "宣传场景",
       "default": "chat",
       "options": [
-        {"value": "chat", "label": "聊天记录"},
-        {"value": "web", "label": "网页教程"},
-        {"value": "study", "label": "学习笔记"},
-        {"value": "checklist", "label": "订单与清单"}
+        {"value": "chat", "label": "微信聊天记录"},
+        {"value": "web", "label": "公众号长文"},
+        {"value": "study", "label": "小红书帖子"},
+        {"value": "checklist", "label": "风景照片"}
       ]
     }
   ]'
@@ -95,7 +95,7 @@
         z-index: 10;
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-start;
       }
 
       .brand {
@@ -113,12 +113,6 @@
         border: 5px solid var(--accent);
         border-radius: 8px 8px 16px 8px;
         transform: rotate(-12deg);
-      }
-
-      .timecode {
-        color: var(--secondary);
-        font-size: 28px;
-        letter-spacing: 0.06em;
       }
 
       .edge-rule {
@@ -193,7 +187,6 @@
         height: 250px;
         opacity: 0;
         overflow: hidden;
-        padding: 22px;
         border: 3px solid var(--border);
         border-radius: 28px;
         background: var(--bg);
@@ -201,29 +194,43 @@
       }
 
       .thumb-number {
+        position: absolute;
+        left: 14px;
+        top: 14px;
+        z-index: 2;
+        padding: 6px 10px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.92);
         color: var(--accent-pressed);
         font-size: 23px;
         font-weight: 800;
       }
 
-      .thumb-line {
-        display: block;
-        width: 100%;
-        height: 22px;
-        margin-top: 17px;
-        border-radius: 8px;
-        background: var(--soft);
+      .scenic-slice {
+        position: absolute;
+        inset: 0;
+        background-image: url("assets/qingfeng-long-image-poster-v2.png");
+        background-repeat: no-repeat;
+        background-size: 1930px 3432px;
+        background-position: -1330px var(--slice-y, -462px);
       }
 
-      .thumb-line.short {
-        width: 72%;
-      }
-
-      .thumb-copy {
-        margin-top: 16px;
-        font-size: 22px;
-        line-height: 1.35;
-        font-weight: 700;
+      .scenario-chip {
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 14px;
+        z-index: 2;
+        padding: 7px 10px;
+        overflow: hidden;
+        border-radius: 12px;
+        background: rgba(16, 18, 17, 0.78);
+        color: #ffffff;
+        font-size: 18px;
+        font-weight: 800;
+        text-align: center;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       .count-arrow {
@@ -255,15 +262,13 @@
         text-align: center;
       }
 
-      .count-result-row {
-        margin: 15px 18px 0;
-        min-height: 84px;
-        padding: 17px;
-        border-radius: 17px;
-        background: var(--soft);
-        font-size: 20px;
-        line-height: 1.35;
-        font-weight: 700;
+      .scenic-long {
+        width: 100%;
+        height: calc(100% - 84px);
+        background-image: url("assets/qingfeng-long-image-poster-v2.png");
+        background-repeat: no-repeat;
+        background-size: 2353px 4185px;
+        background-position: -1625px -563px;
       }
 
       /* 2–5 秒：原图重复 */
@@ -340,29 +345,41 @@
       }
 
       .overlap-card-body {
-        padding: 26px;
-      }
-
-      .overlap-row {
         position: relative;
-        min-height: 118px;
-        margin-bottom: 22px;
-        padding: 23px;
-        border-radius: 20px;
-        background: var(--soft);
-        font-size: 26px;
-        line-height: 1.38;
-        font-weight: 700;
+        height: 754px;
+        overflow: hidden;
       }
 
-      .overlap-row.repeated {
-        border: 4px solid var(--accent);
-        background: var(--bg);
+      .overlap-photo {
+        position: absolute;
+        inset: 0;
+        background-image: url("assets/qingfeng-long-image-poster-v2.png");
+        background-repeat: no-repeat;
+        background-size: 4320px 7684px;
+        background-position: -2980px var(--overlap-y, -1032px);
+      }
+
+      .overlap-highlight {
+        position: absolute;
+        left: 20px;
+        right: 20px;
+        height: 230px;
+        border: 8px solid var(--accent);
+        border-radius: 22px;
+        background: rgba(8, 169, 155, 0.08);
+      }
+
+      .overlap-highlight.top {
+        top: 8px;
+      }
+
+      .overlap-highlight.bottom {
+        bottom: 8px;
       }
 
       .repeat-label {
         position: absolute;
-        top: -21px;
+        top: 12px;
         right: 16px;
         padding: 7px 16px;
         border-radius: 18px;
@@ -555,23 +572,22 @@
         position: relative;
         height: 230px;
         overflow: hidden;
-        padding: 22px;
         border: 3px solid var(--border);
         border-radius: 24px;
         background: var(--soft);
       }
 
       .album-thumb-title {
+        position: absolute;
+        left: 12px;
+        bottom: 12px;
+        z-index: 2;
+        padding: 6px 10px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.9);
         color: var(--secondary);
         font-size: 20px;
         font-weight: 700;
-      }
-
-      .album-thumb-copy {
-        margin-top: 22px;
-        font-size: 22px;
-        line-height: 1.4;
-        font-weight: 800;
       }
 
       .album-check {
@@ -622,20 +638,10 @@
         width: 150px;
         height: 210px;
         overflow: hidden;
-        padding: 14px;
         border: 3px solid var(--border);
         border-radius: 18px;
         background: var(--bg);
         box-shadow: 0 12px 30px rgba(16, 18, 17, 0.11);
-      }
-
-      .merge-mini span {
-        display: block;
-        width: 100%;
-        height: 18px;
-        margin-bottom: 12px;
-        border-radius: 7px;
-        background: var(--soft);
       }
 
       .merged-preview {
@@ -661,15 +667,10 @@
         text-align: center;
       }
 
-      .merged-preview-row {
-        margin: 10px 12px 0;
-        min-height: 46px;
-        padding: 9px;
-        border-radius: 10px;
-        background: var(--soft);
-        font-size: 14px;
-        line-height: 1.35;
-        font-weight: 700;
+      .merged-preview .scenic-long {
+        height: calc(100% - 61px);
+        background-size: 1694px 3013px;
+        background-position: -1170px -405px;
       }
 
       .progress-track {
@@ -803,6 +804,49 @@
         font-weight: 700;
       }
 
+      .long-section.chat {
+        width: 78%;
+        background: #edf6f4;
+      }
+
+      .long-section.chat.from-me {
+        margin-left: auto;
+        background: #b9ebd7;
+      }
+
+      .long-section.article {
+        padding: 24px 6px 30px;
+        border-bottom: 3px solid var(--border);
+        border-radius: 0;
+        background: var(--bg);
+      }
+
+      .long-section.xiaohongshu {
+        border: 3px solid #f2dfdc;
+        background: #fff7f5;
+      }
+
+      .content-photo {
+        width: 100%;
+        height: 330px;
+        margin-top: 22px;
+        border-radius: 24px;
+        background-image: url("assets/qingfeng-long-image-poster-v2.png");
+        background-repeat: no-repeat;
+        background-size: 2541px 4519px;
+        background-position: -1755px var(--content-y, -608px);
+      }
+
+      .scenic-long-scroll {
+        width: 100%;
+        height: 2600px;
+        border-radius: 24px;
+        background-image: url("assets/qingfeng-long-image-poster-v2.png");
+        background-repeat: no-repeat;
+        background-size: 5460px 9710px;
+        background-position: -3770px -1305px;
+      }
+
       .scroll-indicator {
         position: absolute;
         right: 18px;
@@ -909,7 +953,6 @@
         <div class="scene-fill"></div>
         <div class="topbar">
           <div class="brand"><span class="brand-mark"></span>青缝长图拼接</div>
-          <div class="timecode mono">00:00–00:02</div>
         </div>
         <span class="edge-rule"></span>
         <div class="count-content">
@@ -940,7 +983,6 @@
         <div class="scene-fill"></div>
         <div class="topbar">
           <div class="brand"><span class="brand-mark"></span>青缝长图拼接</div>
-          <div class="timecode mono">00:02–00:05</div>
         </div>
         <span class="edge-rule"></span>
         <div class="overlap-content">
@@ -968,7 +1010,6 @@
         <div class="scene-fill"></div>
         <div class="topbar">
           <div class="brand"><span class="brand-mark"></span>青缝长图拼接</div>
-          <div class="timecode mono">00:05–00:10</div>
         </div>
         <span class="edge-rule"></span>
         <div class="process-content">
@@ -1027,7 +1068,6 @@
         <div class="scene-fill"></div>
         <div class="topbar">
           <div class="brand"><span class="brand-mark"></span>青缝长图拼接</div>
-          <div class="timecode mono">00:10–00:13</div>
         </div>
         <span class="edge-rule"></span>
         <div class="scroll-copy">
@@ -1070,8 +1110,9 @@
     <script>
       const scenarios = {
         chat: {
-          label: "聊天截图",
-          resultHead: "完整聊天记录",
+          label: "微信聊天截图",
+          resultHead: "完整微信聊天记录",
+          kind: "chat",
           items: [
             "周六集合时间改到 9:30",
             "路线已经发群里啦",
@@ -1086,51 +1127,54 @@
           ]
         },
         web: {
-          label: "教程截图",
-          resultHead: "完整网页教程",
+          label: "公众号长文截图",
+          resultHead: "完整公众号长文",
+          kind: "article",
           items: [
-            "步骤 1：准备所需材料",
-            "确认软件已经更新",
-            "打开设置页面",
-            "步骤 2：调整参数",
-            "保存当前配置",
-            "检查预览结果",
-            "步骤 3：导出文件",
-            "核对文件尺寸",
-            "保存到指定目录",
-            "教程步骤完成"
+            "周末去看山：从湖边到云端",
+            "清晨六点，湖面刚刚醒来",
+            "沿着森林步道继续向上",
+            "瀑布在转弯后突然出现",
+            "午后的风穿过整片松林",
+            "山脊上的视野逐渐开阔",
+            "下山前记录最后一束光",
+            "海岸线在黄昏变成金色",
+            "这条路线适合慢慢阅读",
+            "收藏这份完整旅行记录"
           ]
         },
         study: {
-          label: "笔记截图",
-          resultHead: "完整学习笔记",
+          label: "小红书帖子截图",
+          resultHead: "完整小红书帖子",
+          kind: "xiaohongshu",
           items: [
-            "定义：边际效用",
-            "核心条件与假设",
-            "例题：如何判断变化",
-            "推导过程与图示",
-            "结论：关注变化率",
-            "补充概念与辨析",
-            "常见错误整理",
-            "练习题一与解析",
-            "练习题二与解析",
-            "本章复习完成"
+            "周末徒步路线分享",
+            "第一站：雾气里的山湖",
+            "第二站：森林与小瀑布",
+            "沿途风景比照片更治愈",
+            "建议穿防滑的徒步鞋",
+            "下午光线最适合拍山脊",
+            "最后一站看海边日落",
+            "路线和时间整理在后面",
+            "一次保存完整攻略",
+            "下次继续分享轻徒步路线"
           ]
         },
         checklist: {
-          label: "清单截图",
-          resultHead: "完整订单与清单",
+          label: "连续风景截图",
+          resultHead: "完整风景长图",
+          kind: "scenery",
           items: [
-            "证件与车票",
-            "充电器与移动电源",
-            "雨伞与常用药",
-            "确认入住时间",
-            "保存目的地地址",
-            "核对订单编号",
-            "准备换洗衣物",
-            "确认返程时间",
-            "检查随身物品",
-            "清单核对完成"
+            "山湖晨雾",
+            "雪峰倒影",
+            "湖岸远山",
+            "森林步道",
+            "瀑布溪流",
+            "松林山脊",
+            "草坡花野",
+            "海岸夕阳",
+            "金色余晖",
+            "完整风景长图"
           ]
         }
       };
@@ -1153,25 +1197,19 @@
       current.items.slice(0, 8).forEach((text, index) => {
         const card = document.createElement("div");
         card.className = "count-thumb";
+        const sliceY = -462 - index * 96;
         card.innerHTML =
           `<div class="thumb-number mono">${String(index + 1).padStart(2, "0")}/08</div>` +
-          `<span class="thumb-line"></span><span class="thumb-line short"></span>` +
-          `<div class="thumb-copy">${text}</div>`;
+          `<div class="scenic-slice" style="--slice-y:${sliceY}px"></div>` +
+          `<div class="scenario-chip">${current.label} ${String(index + 1).padStart(2, "0")}</div>`;
         eightGrid.appendChild(card);
       });
 
       const countResultBody = document.getElementById("count-result-body");
-      current.items.slice(0, 8).forEach((text) => {
-        appendTextCard(countResultBody, "count-result-row", text);
-      });
+      countResultBody.className = "scenic-long";
 
       const overlapStage = document.getElementById("overlap-stage");
-      const overlapSets = [
-        [current.items[0], current.items[1], current.items[2]],
-        [current.items[2], current.items[3], current.items[4]],
-        [current.items[4], current.items[5], current.items[6]]
-      ];
-      overlapSets.forEach((rows, cardIndex) => {
+      [0, 1, 2].forEach((cardIndex) => {
         const card = document.createElement("div");
         card.className = "overlap-card";
         card.setAttribute("data-layout-allow-overlap", "");
@@ -1183,20 +1221,22 @@
         );
         const body = document.createElement("div");
         body.className = "overlap-card-body";
-        rows.forEach((text, rowIndex) => {
-          const repeated =
-            (cardIndex === 0 && rowIndex === 2) ||
-            (cardIndex === 1 && (rowIndex === 0 || rowIndex === 2)) ||
-            (cardIndex === 2 && rowIndex === 0);
-          const row = appendTextCard(
-            body,
-            `overlap-row${repeated ? " repeated" : ""}`,
-            text
-          );
-          if (repeated) {
-            appendTextCard(row, "repeat-label", "重复区域");
-          }
-        });
+        const photo = document.createElement("div");
+        photo.className = "overlap-photo";
+        photo.style.setProperty("--overlap-y", `${-1032 - cardIndex * 450}px`);
+        body.appendChild(photo);
+        if (cardIndex > 0) {
+          const topHighlight = document.createElement("div");
+          topHighlight.className = "overlap-highlight top";
+          appendTextCard(topHighlight, "repeat-label", "与上一张重复");
+          body.appendChild(topHighlight);
+        }
+        if (cardIndex < 2) {
+          const bottomHighlight = document.createElement("div");
+          bottomHighlight.className = "overlap-highlight bottom";
+          appendTextCard(bottomHighlight, "repeat-label", "与下一张重复");
+          body.appendChild(bottomHighlight);
+        }
         card.appendChild(body);
         overlapStage.appendChild(card);
       });
@@ -1205,9 +1245,10 @@
       current.items.slice(0, 8).forEach((text, index) => {
         const card = document.createElement("div");
         card.className = "album-thumb";
+        const sliceY = -462 - index * 96;
         card.innerHTML =
+          `<div class="scenic-slice" style="--slice-y:${sliceY}px"></div>` +
           `<div class="album-thumb-title mono">${current.label} ${String(index + 1).padStart(2, "0")}</div>` +
-          `<div class="album-thumb-copy">${text}</div>` +
           `<div class="album-check">✓</div>`;
         albumGrid.appendChild(card);
       });
@@ -1218,35 +1259,46 @@
         card.className = "merge-mini";
         card.setAttribute("data-layout-allow-overlap", "");
         card.setAttribute("data-layout-allow-occlusion", "");
+        const sliceY = -462 - index * 96;
         card.innerHTML =
-          `<span></span><span></span><span></span>` +
+          `<div class="scenic-slice" style="--slice-y:${sliceY}px"></div>` +
           `<div class="album-thumb-title mono">${String(index + 1).padStart(2, "0")}/08</div>`;
         mergeStack.insertBefore(card, mergeStack.querySelector(".merged-preview"));
       });
 
       const mergedPreviewBody = document.getElementById("merged-preview-body");
-      current.items.slice(0, 8).forEach((text) => {
-        appendTextCard(mergedPreviewBody, "merged-preview-row", text);
-      });
+      mergedPreviewBody.className = "scenic-long";
 
       document.getElementById("scroll-result-head").textContent = current.resultHead;
       const scrollContent = document.getElementById("scroll-content");
       scrollContent.setAttribute("data-layout-allow-overflow", "");
       appendTextCard(scrollContent, "long-head", current.resultHead);
-      current.items.forEach((text, index) => {
-        const section = document.createElement("div");
-        section.className = "long-section";
-        appendTextCard(
-          section,
-          "long-section-number mono",
-          `${String(index + 1).padStart(2, "0")} / ${String(current.items.length).padStart(2, "0")}`
-        );
-        appendTextCard(section, "long-section-copy", text);
-        scrollContent.appendChild(section);
-      });
+      if (current.kind === "scenery") {
+        appendTextCard(scrollContent, "scenic-long-scroll", "");
+      } else {
+        current.items.forEach((text, index) => {
+          if (index === 0 || index === 4 || index === 8) {
+            const photo = appendTextCard(scrollContent, "content-photo", "");
+            photo.style.setProperty("--content-y", `${-608 - Math.floor(index / 4) * 360}px`);
+          }
+          const section = document.createElement("div");
+          section.className = `long-section ${current.kind}`;
+          if (current.kind === "chat" && index % 2 === 1) {
+            section.classList.add("from-me");
+          }
+          appendTextCard(
+            section,
+            "long-section-number mono",
+            `${String(index + 1).padStart(2, "0")} / ${String(current.items.length).padStart(2, "0")}`
+          );
+          appendTextCard(section, "long-section-copy", text);
+          scrollContent.appendChild(section);
+        });
+      }
 
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
+      const scrollDistance = current.kind === "scenery" ? -1450 : -1050;
 
       // 0–2 秒：8 张截图 → 1 张长图
       tl.set("#scene-count .count-headline", { opacity: 1, y: 74 }, 0.04);
@@ -1289,7 +1341,7 @@
         2.42
       );
       tl.fromTo(
-        "#scene-overlap .overlap-row.repeated",
+        "#scene-overlap .overlap-highlight",
         { scaleX: 0.76, opacity: 0.35 },
         { scaleX: 1, opacity: 1, duration: 0.3, stagger: 0.11, ease: "power2.out" },
         3.32
@@ -1386,7 +1438,7 @@
       tl.to("#scene-scroll .scene-subtitle", { x: 0, duration: 0.25, ease: "power3.out" }, 10.17);
       tl.set("#scene-scroll .scroll-phone", { opacity: 1, y: 110, scale: 0.95 }, 10.18);
       tl.to("#scene-scroll .scroll-phone", { y: 0, scale: 1, duration: 0.38, ease: "power3.out" }, 10.18);
-      tl.fromTo("#scene-scroll .scroll-content", { y: 0 }, { y: -850, duration: 2.25, ease: "power3.out" }, 10.55);
+      tl.fromTo("#scene-scroll .scroll-content", { y: 0 }, { y: scrollDistance, duration: 2.25, ease: "power3.out" }, 10.55);
       tl.fromTo("#scene-scroll .scroll-indicator", { y: 0, scaleY: 1 }, { y: 770, scaleY: 0.56, duration: 2.25, ease: "power3.out" }, 10.55);
 
       // 13–15 秒：品牌、正式小程序码、本机处理
