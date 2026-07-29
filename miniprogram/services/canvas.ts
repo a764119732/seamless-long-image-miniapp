@@ -48,6 +48,7 @@ export async function renderPlanToCanvas(
   context.fillStyle = "#ffffff";
   context.fillRect(0, 0, plan.outputWidth, plan.outputHeight);
   const retainedImages: CanvasImageLike[] = [];
+  let outputX = 0;
   let outputY = 0;
 
   try {
@@ -56,19 +57,21 @@ export async function renderPlanToCanvas(
       if (!source) throw new Error("找不到待导出的源图片");
       const image = await loadCanvasImage(canvas, source.path);
       retainedImages.push(image);
+      const drawWidth = Math.max(1, Math.round(segment.normalizedWidth * plan.scale));
       const drawHeight = Math.max(1, Math.round(segment.normalizedHeight * plan.scale));
       context.drawImage(
         image,
-        0,
+        segment.sourceX,
         segment.sourceY,
-        source.width,
+        segment.sourceWidth,
         segment.sourceHeight,
-        0,
+        outputX,
         outputY,
-        plan.outputWidth,
+        drawWidth,
         drawHeight
       );
-      outputY += drawHeight;
+      if (plan.direction === "horizontal") outputX += drawWidth;
+      else outputY += drawHeight;
     }
     return retainedImages;
   } catch (error) {

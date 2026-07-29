@@ -3,7 +3,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { analyzePair, analyzePairWithOrderHint, createAnalysisFrame } = require("../miniprogram/workers/stitch-core");
-const { validatePortraitImage } = require("../miniprogram/lib/source-validation");
+const { validateSourceImage } = require("../miniprogram/lib/source-validation");
 
 function createScreenshot({
   width = 96,
@@ -124,9 +124,40 @@ test("无效像素输入给出明确错误", () => {
   assert.throws(() => createAnalysisFrame({ width: 20, height: 20, rgba: new Uint8ClampedArray(8) }), /像素数据无效/);
 });
 
-test("横向或旋转后的截图在导入阶段被明确拒绝", () => {
-  assert.equal(validatePortraitImage({ width: 1170, height: 2532 }), true);
-  assert.throws(() => validatePortraitImage({ width: 2532, height: 1170 }), /只支持竖向截图/);
+test("导入图片方向必须与用户选择的拼接方向一致", () => {
+  assert.equal(validateSourceImage({ width: 1170, height: 2532 }, "vertical"), true);
+  assert.equal(validateSourceImage({ width: 2532, height: 1170 }, "horizontal"), true);
+  assert.throws(() => validateSourceImage({ width: 2532, height: 1170 }, "vertical"), /竖向截图/);
+  assert.throws(() => validateSourceImage({ width: 1170, height: 2532 }, "horizontal"), /横向截图/);
+});
+
+test("识别横向连续截图的左右重叠", () => {
+  const firstVertical = createScreenshot({ contentStart: 0 });
+  const secondVertical = createScreenshot({ contentStart: 80 });
+  const transpose = (source) => {
+    const rgba = new Uint8ClampedArray(source.width * source.height * 4);
+    for (let y = 0; y < source.height; y += 1) {
+      for (let x = 0; x < source.width; x += 1) {
+        const sourceOffset = (y * source.width + x) * 4;
+        const targetOffset = (x * source.height + y) * 4;
+        rgba.set(source.rgba.subarray(sourceOffset, sourceOffset + 4), targetOffset);
+      }
+    }
+    return {
+      width: source.height,
+      height: source.width,
+      rgba,
+      fixedLeft: source.fixedTop,
+      contentStart: source.contentStart
+    };
+  };
+  const left = transpose(firstVertical);
+  const right = transpose(secondVertical);
+  const result = analyzePair(left, right, 6, "horizontal");
+  assert.equal(result.mode, "auto", JSON.stringify(result));
+  const leftGlobal = left.contentStart + result.prevCropEndRatio * left.width - left.fixedLeft;
+  const rightGlobal = right.contentStart + result.nextCropStartRatio * right.width - right.fixedLeft;
+  assert.ok(Math.abs(leftGlobal - rightGlobal) <= 2, `${leftGlobal} vs ${rightGlobal}`);
 });
 
 test("20 张连续截图可依次生成 19 个可靠接缝", () => {

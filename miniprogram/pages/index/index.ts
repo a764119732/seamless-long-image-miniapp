@@ -4,8 +4,8 @@ import {
   releaseCanvasImages,
   canvasToPng
 } from "../../services/canvas";
-import { buildStitchPlan, MIN_OUTPUT_WIDTH } from "../../services/stitch-plan";
-import { validatePortraitImage } from "../../lib/source-validation";
+import { buildStitchPlan, MIN_OUTPUT_SHORT_EDGE } from "../../services/stitch-plan";
+import { validateSourceImage } from "../../lib/source-validation";
 
 type PendingAnalysis = {
   resolve: (result: SeamDecision) => void;
@@ -64,6 +64,7 @@ Page({
   data: {
     state: "select" as AppState,
     statusBarHeight: 24,
+    stitchDirection: "vertical" as StitchDirection,
     images: [] as SourceImage[],
     seams: [] as SeamDecision[],
     confirmedManualPairs: [] as number[],
@@ -73,6 +74,7 @@ Page({
     manualPrevPercent: 100,
     manualNextPercent: 0,
     manualLinkedPercent: 50,
+    previewCanvasWidth: 228,
     previewCanvasHeight: 520,
     previewPath: "",
     autoRemovedCount: 0,
@@ -197,7 +199,7 @@ Page({
           const additions: SourceImage[] = [];
           for (const file of result.tempFiles) {
             const info = await getImageInfo(file.tempFilePath);
-            validatePortraitImage(info);
+            validateSourceImage(info, this.data.stitchDirection);
             additions.push({
               id: createId("image"),
               path: file.tempFilePath,
@@ -225,6 +227,17 @@ Page({
         wx.showToast({ title: "无法打开相册，请稍后重试", icon: "none" });
       }
     });
+  },
+
+  setStitchDirection(this: any, event: any) {
+    const direction = event.currentTarget.dataset.direction as StitchDirection;
+    if (direction !== "vertical" && direction !== "horizontal") return;
+    if (direction === this.data.stitchDirection) return;
+    if (this.data.images.length) {
+      wx.showToast({ title: "请先删除已选图片再切换方向", icon: "none" });
+      return;
+    }
+    this.setData({ stitchDirection: direction, errorMessage: "" });
   },
 
   removeImage(this: any, event: any) {
@@ -304,7 +317,8 @@ Page({
         jobId: activeJobId,
         pairIndex,
         left: analysisCache[pairIndex],
-        right: analysisCache[pairIndex + 1]
+        right: analysisCache[pairIndex + 1],
+        direction: this.data.stitchDirection
       } as WorkerRequest);
     });
   },
@@ -434,10 +448,16 @@ Page({
   async renderOverview(this: any) {
     if (this.data.state !== "preview") return;
     try {
-      const plan = buildStitchPlan(this.data.images, this.data.seams);
-      const logicalWidth = 228;
-      const logicalHeight = Math.max(360, Math.min(1200, Math.round((plan.rawHeight / plan.baseWidth) * logicalWidth)));
-      this.setData({ previewCanvasHeight: logicalHeight, previewPath: "" });
+      const plan = buildStitchPlan(this.data.images, this.data.seams, 1, this.data.stitchDirection);
+      const logicalWidth =
+        plan.direction === "horizontal"
+          ? Math.max(360, Math.min(1200, Math.round((plan.rawWidth / plan.baseHeight) * 228)))
+          : 228;
+      const logicalHeight =
+        plan.direction === "vertical"
+          ? Math.max(360, Math.min(1200, Math.round((plan.rawHeight / plan.baseWidth) * logicalWidth)))
+          : 228;
+      this.setData({ previewCanvasWidth: logicalWidth, previewCanvasHeight: logicalHeight, previewPath: "" });
       await new Promise((resolve) => setTimeout(resolve, 30));
       const canvas = await getCanvasNode(this, "#overviewCanvas");
       const previewScale = Math.min(logicalWidth / plan.outputWidth, logicalHeight / plan.outputHeight);
@@ -483,8 +503,13 @@ Page({
       let multiplier = 1;
       let lastError: Error | null = null;
       for (let attempt = 0; attempt < 3; attempt += 1) {
-        const plan = buildStitchPlan(this.data.images, this.data.seams, multiplier);
-        if (plan.outputWidth < MIN_OUTPUT_WIDTH) break;
+        const plan = buildStitchPlan(
+          this.data.images,
+          this.data.seams,
+          multiplier,
+          this.data.stitchDirection
+        );
+        if (Math.min(plan.outputWidth, plan.outputHeight) < MIN_OUTPUT_SHORT_EDGE) break;
         this.setData({ progress: 20 + attempt * 20, progressText: `正在生成长图${attempt ? "（自动降低尺寸）" : ""}` });
         try {
           const resultPath = await canvasExport(canvas, plan, this);

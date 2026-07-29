@@ -149,7 +149,29 @@ function chooseSeam(left, right, leftEnd, rightStart, overlap) {
   };
 }
 
-function analyzePair(leftInput, rightInput, pairIndex = 0) {
+function transposeInput(input) {
+  if (!input || !input.rgba || !input.width || !input.height) {
+    throw new Error("横向分析图片像素数据无效");
+  }
+  const rgba = new Uint8ClampedArray(input.width * input.height * 4);
+  for (let y = 0; y < input.height; y += 1) {
+    for (let x = 0; x < input.width; x += 1) {
+      const sourceOffset = (y * input.width + x) * 4;
+      const targetOffset = (x * input.height + y) * 4;
+      rgba[targetOffset] = input.rgba[sourceOffset];
+      rgba[targetOffset + 1] = input.rgba[sourceOffset + 1];
+      rgba[targetOffset + 2] = input.rgba[sourceOffset + 2];
+      rgba[targetOffset + 3] = input.rgba[sourceOffset + 3];
+    }
+  }
+  return {
+    width: input.height,
+    height: input.width,
+    rgba
+  };
+}
+
+function analyzePairVertical(leftInput, rightInput, pairIndex = 0) {
   const left = leftInput.luma ? leftInput : createAnalysisFrame(leftInput);
   const right = rightInput.luma ? rightInput : createAnalysisFrame(rightInput);
   const fixedTop = detectFixedBand(left, right, true);
@@ -206,11 +228,18 @@ function analyzePair(leftInput, rightInput, pairIndex = 0) {
   };
 }
 
-function analyzePairWithOrderHint(leftInput, rightInput, pairIndex = 0) {
-  const result = analyzePair(leftInput, rightInput, pairIndex);
+function analyzePair(leftInput, rightInput, pairIndex = 0, direction = "vertical") {
+  if (direction === "horizontal") {
+    return analyzePairVertical(transposeInput(leftInput), transposeInput(rightInput), pairIndex);
+  }
+  return analyzePairVertical(leftInput, rightInput, pairIndex);
+}
+
+function analyzePairWithOrderHint(leftInput, rightInput, pairIndex = 0, direction = "vertical") {
+  const result = analyzePair(leftInput, rightInput, pairIndex, direction);
   if (result.mode !== "manual") return result;
 
-  const reversed = analyzePair(rightInput, leftInput, pairIndex);
+  const reversed = analyzePair(rightInput, leftInput, pairIndex, direction);
   return reversed.mode === "auto" ? { ...result, orderHint: true } : result;
 }
 

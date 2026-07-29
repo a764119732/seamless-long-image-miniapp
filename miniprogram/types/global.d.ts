@@ -47,6 +47,7 @@ interface CanvasLike {
 }
 
 type AppState = "select" | "analyzing" | "preview" | "manual" | "exporting" | "complete" | "error";
+type StitchDirection = "vertical" | "horizontal";
 
 interface SourceImage {
   id: string;
@@ -81,15 +82,21 @@ interface SeamDecision {
 
 interface StitchSegment {
   imageIndex: number;
+  sourceX: number;
   sourceY: number;
+  sourceWidth: number;
   sourceHeight: number;
+  normalizedWidth: number;
   normalizedHeight: number;
 }
 
 interface StitchPlan {
+  direction: StitchDirection;
   seams: SeamDecision[];
   segments: StitchSegment[];
   baseWidth: number;
+  baseHeight: number;
+  rawWidth: number;
   rawHeight: number;
   scale: number;
   outputWidth: number;
@@ -98,7 +105,14 @@ interface StitchPlan {
 }
 
 type WorkerRequest =
-  | { type: "ANALYZE_PAIR"; jobId: string; pairIndex: number; left: AnalysisImage; right: AnalysisImage }
+  | {
+      type: "ANALYZE_PAIR";
+      jobId: string;
+      pairIndex: number;
+      left: AnalysisImage;
+      right: AnalysisImage;
+      direction: StitchDirection;
+    }
   | { type: "CANCEL"; jobId: string };
 
 type WorkerResponse =

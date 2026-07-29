@@ -19,7 +19,12 @@ worker.onMessage((message) => {
       pairIndex: message.pairIndex,
       progress: 0.15
     });
-    const result = analyzePairWithOrderHint(message.left, message.right, message.pairIndex);
+    const result = analyzePairWithOrderHint(
+      message.left,
+      message.right,
+      message.pairIndex,
+      message.direction || "vertical"
+    );
     if (cancelledJobId === jobId) return;
     worker.postMessage({
       type: "PAIR_RESULT",

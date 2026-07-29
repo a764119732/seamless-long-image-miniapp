@@ -6,6 +6,19 @@
       <text class="screen-subtitle">自动识别重叠部分，图片仅在本机处理</text>
     </view>
 
+    <view class="direction-switch" aria-label="拼接方向">
+      <button
+        class="direction-option {{stitchDirection === 'vertical' ? 'active' : ''}}"
+        data-direction="vertical"
+        bindtap="setStitchDirection"
+      >上下拼接</button>
+      <button
+        class="direction-option {{stitchDirection === 'horizontal' ? 'active' : ''}}"
+        data-direction="horizontal"
+        bindtap="setStitchDirection"
+      >左右拼接</button>
+    </view>
+
     <image wx:if="{{images.length === 0}}" class="select-illustration" src="/assets/select-illustration.svg" mode="aspectFit" />
 
     <scroll-view wx:else class="selected-list" scroll-y enhanced show-scrollbar="false">
@@ -36,12 +49,12 @@
         <text>{{images.length ? '继续选择' : '从相册选择'}}</text>
       </button>
       <button wx:if="{{images.length >= 2}}" class="secondary-button" bindtap="startAnalysis">开始拼接</button>
-      <text class="helper-text">请按从上到下的顺序选择 2–20 张</text>
+      <text class="helper-text">请按{{stitchDirection === 'horizontal' ? '从左到右' : '从上到下'}}的顺序选择 2–20 张</text>
     </view>
   </view>
 
   <view wx:elif="{{state === 'analyzing' || state === 'exporting'}}" class="screen processing-screen">
-    <text class="top-title">{{state === 'analyzing' ? '正在识别重叠内容' : '正在生成长图'}}</text>
+    <text class="top-title">{{state === 'analyzing' ? '正在识别重叠内容' : (stitchDirection === 'horizontal' ? '正在生成宽图' : '正在生成长图')}}</text>
     <view class="processing-visual">
       <view class="scan-card scan-card-one"></view>
       <view class="scan-card scan-card-two"></view>
@@ -55,8 +68,14 @@
 
   <view wx:elif="{{state === 'preview'}}" class="screen preview-screen">
     <text class="top-title">拼接预览</text>
-    <scroll-view class="preview-scroll" scroll-y enhanced show-scrollbar="false">
-      <image wx:if="{{previewPath}}" class="overview-image" src="{{previewPath}}" mode="widthFix" />
+    <scroll-view class="preview-scroll" scroll-x="{{stitchDirection === 'horizontal'}}" scroll-y enhanced show-scrollbar="false">
+      <image
+        wx:if="{{previewPath}}"
+        class="overview-image {{stitchDirection}}"
+        style="width: {{previewCanvasWidth}}px; height: {{previewCanvasHeight}}px;"
+        src="{{previewPath}}"
+        mode="scaleToFill"
+      />
       <view wx:else class="preview-loading">正在生成预览</view>
     </scroll-view>
     <view class="removed-status">
@@ -88,18 +107,22 @@
     <text class="top-title">微调接缝 {{currentSeamIndex + 1}} / {{seams.length}}</text>
     <text class="screen-subtitle manual-subtitle">{{seams[currentSeamIndex].orderHint ? '图片顺序可能反了，请返回重选并调整顺序' : seams[currentSeamIndex].mode === 'manual' ? '未找到可靠重叠，请确认保留范围' : '拖动接缝线，避开文字与图片主体'}}</text>
     <button wx:if="{{seams[currentSeamIndex].orderHint}}" class="primary-button order-fix-button" bindtap="swapCurrentPairAndRetry">交换这两张并重新分析</button>
-    <view class="crop-preview-row">
+    <view class="crop-preview-row {{stitchDirection}}">
       <view class="crop-panel">
         <image class="crop-image" src="{{images[currentSeamIndex].thumbPath}}" mode="aspectFill" />
-        <view class="crop-shade bottom" style="top: {{manualPrevPercent}}%;"></view>
-        <view class="crop-line" style="top: {{manualPrevPercent}}%;"></view>
-        <text class="crop-label">上一张保留到此</text>
+        <view wx:if="{{stitchDirection === 'horizontal'}}" class="crop-shade right" style="left: {{manualPrevPercent}}%;"></view>
+        <view wx:if="{{stitchDirection === 'horizontal'}}" class="crop-line horizontal" style="left: {{manualPrevPercent}}%;"></view>
+        <view wx:if="{{stitchDirection === 'vertical'}}" class="crop-shade bottom" style="top: {{manualPrevPercent}}%;"></view>
+        <view wx:if="{{stitchDirection === 'vertical'}}" class="crop-line" style="top: {{manualPrevPercent}}%;"></view>
+        <text class="crop-label">上一张保留到{{stitchDirection === 'horizontal' ? '这里' : '此处'}}</text>
       </view>
       <view class="crop-panel">
         <image class="crop-image" src="{{images[currentSeamIndex + 1].thumbPath}}" mode="aspectFill" />
-        <view class="crop-shade top" style="height: {{manualNextPercent}}%;"></view>
-        <view class="crop-line" style="top: {{manualNextPercent}}%;"></view>
-        <text class="crop-label">下一张从此开始</text>
+        <view wx:if="{{stitchDirection === 'horizontal'}}" class="crop-shade left" style="width: {{manualNextPercent}}%;"></view>
+        <view wx:if="{{stitchDirection === 'horizontal'}}" class="crop-line horizontal" style="left: {{manualNextPercent}}%;"></view>
+        <view wx:if="{{stitchDirection === 'vertical'}}" class="crop-shade top" style="height: {{manualNextPercent}}%;"></view>
+        <view wx:if="{{stitchDirection === 'vertical'}}" class="crop-line" style="top: {{manualNextPercent}}%;"></view>
+        <text class="crop-label">下一张从这里开始</text>
       </view>
     </view>
     <view wx:if="{{seams[currentSeamIndex].mode === 'auto'}}" class="slider-group">
@@ -120,13 +143,23 @@
   </view>
 
   <view wx:elif="{{state === 'complete'}}" class="screen complete-screen">
-    <text class="top-title">拼接完成</text>
-    <view class="result-preview-shell">
-      <image class="result-preview" src="{{resultPath}}" mode="widthFix" />
-    </view>
+    <text class="top-title">{{stitchDirection === 'horizontal' ? '宽图拼接完成' : '长图拼接完成'}}</text>
+    <scroll-view
+      class="result-preview-shell {{stitchDirection}}"
+      scroll-x="{{stitchDirection === 'horizontal'}}"
+      scroll-y="{{stitchDirection === 'vertical'}}"
+      enhanced
+      show-scrollbar="false"
+    >
+      <image
+        class="result-preview {{stitchDirection}}"
+        src="{{resultPath}}"
+        mode="{{stitchDirection === 'horizontal' ? 'heightFix' : 'widthFix'}}"
+      />
+    </scroll-view>
     <view class="removed-status result-status">
       <image src="/assets/icons/check.svg" mode="aspectFit" />
-      <text>已生成 1 张无重叠长图</text>
+      <text>已生成 1 张无重叠{{stitchDirection === 'horizontal' ? '宽图' : '长图'}}</text>
     </view>
     <text class="result-size">{{resultWidth}} × {{resultHeight}}{{resultWasScaled ? ' · 已自动等比缩小' : ''}}</text>
     <view class="bottom-actions complete-actions">
@@ -169,6 +202,6 @@
     </view>
   </view>
 
-  <canvas id="overviewCanvas" type="2d" class="overview-canvas-buffer" style="height: {{previewCanvasHeight}}px;"></canvas>
+  <canvas id="overviewCanvas" type="2d" class="overview-canvas-buffer" style="width: {{previewCanvasWidth}}px; height: {{previewCanvasHeight}}px;"></canvas>
   <canvas id="exportCanvas" type="2d" class="export-canvas"></canvas>
 </view>
