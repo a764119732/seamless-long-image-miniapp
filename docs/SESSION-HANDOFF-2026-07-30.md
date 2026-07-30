@@ -84,10 +84,11 @@ npm run check
 ## Git 状态
 
 - 分支：`agent/seamless-long-image-miniapp`
-- 当前代码提交：`10faed1 feat: add horizontal stitching and campaign kit`
-- 本地分支在交接文档写入前领先远端 4 个提交。
+- 功能代码提交：`10faed1 feat: add horizontal stitching and campaign kit`
+- 交接提交：`7cc4f33 docs: hand off 0.1.5 review state`
 - 远端：`https://github.com/a764119732/seamless-long-image-miniapp.git`
-- 此前推送因 Windows Git 凭据不可用失败；不要因此重置或重写提交历史。
+- 2026-07-30 已通过 Windows Git Credential Manager 完成一次性持久授权，交接提交及此前积压提交均已推送。后续同一 Windows 账号下的新 Codex 会话可直接使用 `git push`，无需每次重新登录。
+- GitHub CLI（`gh`）自身仍保留一枚失效 Token；这不影响 Git 的拉取和推送。如后续需要用 `gh` 管理 Issue、PR 或仓库设置，再单独执行一次 `gh auth login -h github.com`。
 - 用户已有未跟踪文件必须保留：
   - `docs/research/wechat-miniapp-growth-2026-07-29.md`
   - `docs/审核申诉-0.1.4.md`
@@ -114,4 +115,3 @@ npm run check
 ## 新会话可直接粘贴的指令
 
 > 请接管微信小程序项目 `E:\obsidian\vibe coding\seamless-long-image-miniapp`。先完整读取 `docs/SESSION-HANDOFF-2026-07-30.md` 和根目录 `AGENTS.md`，再只读检查 Git 状态、当前分支、`package.json` 与 `docs/release/0.1.5-审核说明.md`。保留所有现有改动和未跟踪文件，不重置、不删除、不擅自清理。当前优先任务是继续处理 0.1.5 被误判为 UGC/图片发布场景的微信审核问题；在我提供最新审核反馈前不要修改代码、不要接入后端或内容上传，也不要宣称 0.1.5 已通过或已上线。请先汇报你读取到的当前状态和下一步。
-
