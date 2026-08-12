@@ -77,6 +77,16 @@ npm run check      # 类型检查 + 全部测试
 - 参与贡献：[CONTRIBUTING.md](CONTRIBUTING.md)
 - 安全问题：[SECURITY.md](SECURITY.md)
 
+## 项目文档
+
+- 产品与视觉规范：[docs/design-system.md](docs/design-system.md)
+- 0.1.5 审核说明：[docs/release/0.1.5-审核说明.md](docs/release/0.1.5-审核说明.md)
+- 0.1.4 审核申诉记录：[docs/审核申诉-0.1.4.md](docs/审核申诉-0.1.4.md)
+- 小程序增长研究（2026-07-29）：[docs/research/wechat-miniapp-growth-2026-07-29.md](docs/research/wechat-miniapp-growth-2026-07-29.md)
+- 多平台转化素材包：[docs/marketing/跨平台转化素材包-2026-07-29.md](docs/marketing/跨平台转化素材包-2026-07-29.md)
+
+带日期的审核、研究和营销文档用于保留项目决策依据，其内容反映对应日期的状态，不代表微信平台规则或线上版本的实时状态。
+
 ## 许可证
 
-当前仓库尚未授予开源许可证。公开仓库只代表源码可见，不自动授予复制、修改或再分发权利；正式开源前需由维护者选择并添加许可证。
+本项目采用 [MIT License](LICENSE) 开源。
