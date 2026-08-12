@@ -5,7 +5,7 @@
   "description": "完全本地处理的微信小程序长图拼接工具",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "node --test --test-isolation=none tests/*.test.js",
+    "test": "node --test tests/*.test.js",
     "check": "npm run typecheck && npm test"
   },
   "devDependencies": {
