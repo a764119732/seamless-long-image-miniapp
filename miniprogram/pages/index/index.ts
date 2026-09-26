@@ -22,6 +22,11 @@ let pendingAnalysis = new Map<number, PendingAnalysis>();
 let analysisCache: AnalysisImage[] = [];
 let editingOriginal: SeamDecision | null = null;
 
+function cropPreviewSize(image: SourceImage) {
+  const scale = Math.min(326 / image.width, 470 / image.height);
+  return { width: image.width * scale, height: image.height * scale };
+}
+
 function createId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
@@ -74,6 +79,8 @@ Page({
     manualPrevPercent: 100,
     manualNextPercent: 0,
     manualLinkedPercent: 50,
+    manualPrevSize: { width: 326, height: 470 },
+    manualNextSize: { width: 326, height: 470 },
     previewCanvasWidth: 228,
     previewCanvasHeight: 520,
     previewPath: "",
@@ -341,8 +348,10 @@ Page({
     this.setData({
       state: "manual",
       currentSeamIndex: pairIndex,
-      manualPrevPercent: Math.round(seam.prevCropEndRatio * 100),
-      manualNextPercent: Math.round(seam.nextCropStartRatio * 100),
+      manualPrevPercent: Number((seam.prevCropEndRatio * 100).toFixed(4)),
+      manualNextPercent: Number((seam.nextCropStartRatio * 100).toFixed(4)),
+      manualPrevSize: cropPreviewSize(this.data.images[pairIndex]),
+      manualNextSize: cropPreviewSize(this.data.images[pairIndex + 1]),
       manualLinkedPercent: 50
     });
   },
@@ -362,11 +371,22 @@ Page({
   onLinkedSeamChange(this: any, event: any) {
     if (!editingOriginal) return;
     const percent = Number(event.detail.value);
-    const delta = ((percent - 50) / 50) * Math.max(0.02, editingOriginal.overlapRatio * 0.35);
+    const prev = this.data.images[this.data.currentSeamIndex] as SourceImage;
+    const next = this.data.images[this.data.currentSeamIndex + 1] as SourceImage;
+    const ratio = this.data.stitchDirection === "horizontal"
+      ? (prev.width / prev.height) / (next.width / next.height)
+      : (prev.height / prev.width) / (next.height / next.width);
+    // 按归一化像素移动两条裁切线；统一限制位移，避免边缘处只有一张继续移动。
+    const requested = ((percent - 50) / 50) * Math.max(0.02, editingOriginal.overlapRatio * 0.35);
+    const delta = Math.min(
+      1 - editingOriginal.prevCropEndRatio,
+      (0.98 - editingOriginal.nextCropStartRatio) / ratio,
+      Math.max(0.02 - editingOriginal.prevCropEndRatio, -editingOriginal.nextCropStartRatio / ratio, requested)
+    );
     this.setData({
       manualLinkedPercent: percent,
-      manualPrevPercent: Math.round(Math.min(98, Math.max(2, editingOriginal.prevCropEndRatio * 100 + delta * 100))),
-      manualNextPercent: Math.round(Math.min(98, Math.max(0, editingOriginal.nextCropStartRatio * 100 + delta * 100)))
+      manualPrevPercent: Number(((editingOriginal.prevCropEndRatio + delta) * 100).toFixed(4)),
+      manualNextPercent: Number(((editingOriginal.nextCropStartRatio + delta * ratio) * 100).toFixed(4))
     });
   },
 
@@ -380,6 +400,12 @@ Page({
       prevCropEndRatio: this.data.manualPrevPercent / 100,
       nextCropStartRatio: this.data.manualNextPercent / 100
     };
+    try {
+      buildStitchPlan(this.data.images, seams, 1, this.data.stitchDirection);
+    } catch (error) {
+      wx.showToast({ title: error instanceof Error ? error.message : "请检查裁切范围", icon: "none" });
+      return;
+    }
     const confirmed = Array.from(new Set([...this.data.confirmedManualPairs, pairIndex]));
     const nextManual = seams.findIndex((item, index) => item.mode === "manual" && !confirmed.includes(index));
     this.setData({ seams, confirmedManualPairs: confirmed });
@@ -479,7 +505,11 @@ Page({
       } finally {
         releaseCanvasImages(retainedImages);
       }
-      if (this.data.state === "preview") this.setData({ previewPath });
+      if (this.data.state === "preview") this.setData({
+        previewPath,
+        previewCanvasWidth: previewPlan.outputWidth,
+        previewCanvasHeight: previewPlan.outputHeight
+      });
     } catch (error) {
       this.showError(error);
     }

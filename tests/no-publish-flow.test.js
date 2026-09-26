@@ -23,3 +23,9 @@ test("小程序不包含用户图片发布或拼接结果分享入口", () => {
   assert.doesNotMatch(handoff, /保存和分享/);
   assert.equal(fs.existsSync(path.join(__dirname, "../miniprogram/assets/icons/share.svg")), false);
 });
+
+test("启动和导出不启用云备份，与页面本地处理承诺一致", () => {
+  const app = read("miniprogram/app.ts");
+  const page = read("miniprogram/pages/index/index.ts");
+  assert.doesNotMatch(app + page, /services\/cloudbase|initCloud|saveStitchRecord|wx\.(?:cloud|uploadFile|request)/);
+});

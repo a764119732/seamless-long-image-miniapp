@@ -1,10 +1,44 @@
-export function loadCanvasImage(canvas: CanvasLike, path: string): Promise<CanvasImageLike> {
+function decodeCanvasImage(canvas: CanvasLike, path: string): Promise<CanvasImageLike> {
   return new Promise((resolve, reject) => {
     const image = canvas.createImage();
     image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error("图片解码失败，请重新选择"));
+    image.onerror = () => {
+      releaseCanvasImages([image]);
+      reject(new Error("图片解码失败，请选择 JPG/PNG 截图或减少图片数量后重试"));
+    };
     image.src = path;
   });
+}
+
+export async function loadCanvasImage(canvas: CanvasLike, path: string): Promise<CanvasImageLike> {
+  try {
+    return await decodeCanvasImage(canvas, path);
+  } catch (error) {
+    // 原图优先；解码失败才使用微信本机接口生成较小的兼容图片，最多重试一次。
+    if (typeof wx.compressImage !== "function") throw error;
+    const compatiblePath = await new Promise<string>((resolve, reject) => {
+      wx.getImageInfo({
+        src: path,
+        success: (info: { width: number; height: number }) => {
+          if (!Number.isFinite(info.width) || !Number.isFinite(info.height) || info.width <= 0 || info.height <= 0) {
+            reject(error);
+            return;
+          }
+          const scale = Math.min(1, 2048 / Math.max(info.width, info.height));
+          wx.compressImage({
+            src: path,
+            quality: 100,
+            compressedWidth: Math.max(1, Math.round(info.width * scale)),
+            compressedHeight: Math.max(1, Math.round(info.height * scale)),
+            success: (result: { tempFilePath: string }) => result.tempFilePath ? resolve(result.tempFilePath) : reject(error),
+            fail: () => reject(error)
+          });
+        },
+        fail: () => reject(error)
+      });
+    });
+    return decodeCanvasImage(canvas, compatiblePath);
+  }
 }
 
 export async function createAnalysisImage(source: SourceImage): Promise<AnalysisImage> {
@@ -14,19 +48,22 @@ export async function createAnalysisImage(source: SourceImage): Promise<Analysis
   canvas.width = targetWidth;
   canvas.height = targetHeight;
   const context = canvas.getContext("2d");
-  const image = await loadCanvasImage(canvas, source.path);
-  context.clearRect(0, 0, targetWidth, targetHeight);
-  context.drawImage(image, 0, 0, targetWidth, targetHeight);
-  const imageData = context.getImageData(0, 0, targetWidth, targetHeight);
-  image.onload = null;
-  image.onerror = null;
-  image.src = "";
-  return {
-    id: source.id,
-    width: targetWidth,
-    height: targetHeight,
-    rgba: imageData.data
-  };
+  let image: CanvasImageLike | undefined;
+  try {
+    image = await loadCanvasImage(canvas, source.path);
+    context.clearRect(0, 0, targetWidth, targetHeight);
+    context.drawImage(image, 0, 0, targetWidth, targetHeight);
+    return {
+      id: source.id,
+      width: targetWidth,
+      height: targetHeight,
+      rgba: context.getImageData(0, 0, targetWidth, targetHeight).data
+    };
+  } finally {
+    if (image) releaseCanvasImages([image]);
+    canvas.width = 1;
+    canvas.height = 1;
+  }
 }
 
 export function releaseCanvasImages(images: CanvasImageLike[]): void {
@@ -50,6 +87,7 @@ export async function renderPlanToCanvas(
   const retainedImages: CanvasImageLike[] = [];
   let outputX = 0;
   let outputY = 0;
+  let normalizedOffset = 0;
 
   try {
     for (const segment of plan.segments) {
@@ -57,14 +95,22 @@ export async function renderPlanToCanvas(
       if (!source) throw new Error("找不到待导出的源图片");
       const image = await loadCanvasImage(canvas, source.path);
       retainedImages.push(image);
-      const drawWidth = Math.max(1, Math.round(segment.normalizedWidth * plan.scale));
-      const drawHeight = Math.max(1, Math.round(segment.normalizedHeight * plan.scale));
+      const sourceScaleX = (image.width || source.width) / source.width;
+      const sourceScaleY = (image.height || source.height) / source.height;
+      normalizedOffset += plan.direction === "horizontal" ? segment.normalizedWidth : segment.normalizedHeight;
+      const end = Math.min(
+        plan.direction === "horizontal" ? plan.outputWidth : plan.outputHeight,
+        Math.round(normalizedOffset * plan.scale)
+      );
+      const drawWidth = plan.direction === "horizontal" ? end - outputX : plan.outputWidth;
+      const drawHeight = plan.direction === "vertical" ? end - outputY : plan.outputHeight;
+      if (drawWidth <= 0 || drawHeight <= 0) continue;
       context.drawImage(
         image,
-        segment.sourceX,
-        segment.sourceY,
-        segment.sourceWidth,
-        segment.sourceHeight,
+        segment.sourceX * sourceScaleX,
+        segment.sourceY * sourceScaleY,
+        segment.sourceWidth * sourceScaleX,
+        segment.sourceHeight * sourceScaleY,
         outputX,
         outputY,
         drawWidth,

@@ -5,6 +5,7 @@ declare const wx: {
   chooseMedia(options: Record<string, unknown>): void;
   getPrivacySetting(options: Record<string, unknown>): void;
   getImageInfo(options: Record<string, unknown>): void;
+  compressImage(options: Record<string, unknown>): void;
   createOffscreenCanvas(options: Record<string, unknown>): CanvasLike;
   createWorker(path: string): WorkerLike;
   canvasToTempFilePath(options: Record<string, unknown>, component?: unknown): void;

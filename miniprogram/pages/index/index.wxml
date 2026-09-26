@@ -74,7 +74,7 @@
         class="overview-image {{stitchDirection}}"
         style="width: {{previewCanvasWidth}}px; height: {{previewCanvasHeight}}px;"
         src="{{previewPath}}"
-        mode="scaleToFill"
+        mode="aspectFit"
       />
       <view wx:else class="preview-loading">正在生成预览</view>
     </scroll-view>
@@ -105,23 +105,32 @@
 
   <view wx:elif="{{state === 'manual'}}" class="screen manual-screen">
     <text class="top-title">微调接缝 {{currentSeamIndex + 1}} / {{seams.length}}</text>
-    <text class="screen-subtitle manual-subtitle">{{seams[currentSeamIndex].orderHint ? '图片顺序可能反了，请返回重选并调整顺序' : seams[currentSeamIndex].mode === 'manual' ? '未找到可靠重叠，请确认保留范围' : '拖动接缝线，避开文字与图片主体'}}</text>
+    <scroll-view class="manual-content" scroll-y enhanced show-scrollbar="false">
+    <text class="screen-subtitle manual-subtitle">{{seams[currentSeamIndex].orderHint ? '图片顺序可能反了，请返回重选并调整顺序' : seams[currentSeamIndex].mode === 'manual' ? '拖动下方滑块，灰色部分不会保留' : '拖动下方滑块，联动微调接缝'}}</text>
     <button wx:if="{{seams[currentSeamIndex].orderHint}}" class="primary-button order-fix-button" bindtap="swapCurrentPairAndRetry">交换这两张并重新分析</button>
     <view class="crop-preview-row {{stitchDirection}}">
-      <view class="crop-panel">
-        <image class="crop-image" src="{{images[currentSeamIndex].thumbPath}}" mode="aspectFill" />
+      <view class="crop-column">
+      <view class="crop-panel" style="width: {{manualPrevSize.width}}rpx; height: {{manualPrevSize.height}}rpx;">
+        <image class="crop-image" src="{{images[currentSeamIndex].thumbPath}}" mode="aspectFit" />
+        <view wx:if="{{currentSeamIndex > 0 && stitchDirection === 'horizontal'}}" class="crop-shade left" style="width: {{seams[currentSeamIndex - 1].nextCropStartRatio * 100}}%;"></view>
+        <view wx:if="{{currentSeamIndex > 0 && stitchDirection === 'vertical'}}" class="crop-shade top" style="height: {{seams[currentSeamIndex - 1].nextCropStartRatio * 100}}%;"></view>
         <view wx:if="{{stitchDirection === 'horizontal'}}" class="crop-shade right" style="left: {{manualPrevPercent}}%;"></view>
         <view wx:if="{{stitchDirection === 'horizontal'}}" class="crop-line horizontal" style="left: {{manualPrevPercent}}%;"></view>
         <view wx:if="{{stitchDirection === 'vertical'}}" class="crop-shade bottom" style="top: {{manualPrevPercent}}%;"></view>
         <view wx:if="{{stitchDirection === 'vertical'}}" class="crop-line" style="top: {{manualPrevPercent}}%;"></view>
-        <text class="crop-label">上一张保留到{{stitchDirection === 'horizontal' ? '这里' : '此处'}}</text>
       </view>
-      <view class="crop-panel">
-        <image class="crop-image" src="{{images[currentSeamIndex + 1].thumbPath}}" mode="aspectFill" />
+        <text class="crop-label">上一张保留到此处</text>
+      </view>
+      <view class="crop-column">
+      <view class="crop-panel" style="width: {{manualNextSize.width}}rpx; height: {{manualNextSize.height}}rpx;">
+        <image class="crop-image" src="{{images[currentSeamIndex + 1].thumbPath}}" mode="aspectFit" />
+        <view wx:if="{{currentSeamIndex + 1 < seams.length && stitchDirection === 'horizontal'}}" class="crop-shade right" style="left: {{seams[currentSeamIndex + 1].prevCropEndRatio * 100}}%;"></view>
+        <view wx:if="{{currentSeamIndex + 1 < seams.length && stitchDirection === 'vertical'}}" class="crop-shade bottom" style="top: {{seams[currentSeamIndex + 1].prevCropEndRatio * 100}}%;"></view>
         <view wx:if="{{stitchDirection === 'horizontal'}}" class="crop-shade left" style="width: {{manualNextPercent}}%;"></view>
         <view wx:if="{{stitchDirection === 'horizontal'}}" class="crop-line horizontal" style="left: {{manualNextPercent}}%;"></view>
         <view wx:if="{{stitchDirection === 'vertical'}}" class="crop-shade top" style="height: {{manualNextPercent}}%;"></view>
         <view wx:if="{{stitchDirection === 'vertical'}}" class="crop-line" style="top: {{manualNextPercent}}%;"></view>
+      </view>
         <text class="crop-label">下一张从这里开始</text>
       </view>
     </view>
@@ -136,6 +145,7 @@
       <slider min="0" max="98" value="{{manualNextPercent}}" activeColor="#08a99b" backgroundColor="#e5e9e7" block-size="22" bindchanging="onManualNextChange" bindchange="onManualNextChange" />
     </view>
     <button class="text-button" bindtap="returnToSelection">返回重选与排序</button>
+    </scroll-view>
     <view class="bottom-actions manual-actions">
       <button class="secondary-button" bindtap="cancelManual">返回预览</button>
       <button class="primary-button" bindtap="confirmManual">确认接缝</button>
