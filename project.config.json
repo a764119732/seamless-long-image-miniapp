@@ -37,7 +37,10 @@
   "condition": {},
   "simulatorPluginLibVersion": {},
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      { "type": "file", "value": "services/cloudbase.ts" },
+      { "type": "file", "value": "services/cloudbase.js" }
+    ],
     "include": []
   },
   "editorSetting": {}
