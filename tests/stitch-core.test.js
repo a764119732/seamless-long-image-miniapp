@@ -160,9 +160,11 @@ test("识别横向连续截图的左右重叠", () => {
   assert.ok(Math.abs(leftGlobal - rightGlobal) <= 2, `${leftGlobal} vs ${rightGlobal}`);
 });
 
-test("20 张连续截图可依次生成 19 个可靠接缝", () => {
-  const screenshots = Array.from({ length: 20 }, (_, index) => createScreenshot({ contentStart: index * 80 }));
-  const results = screenshots.slice(0, -1).map((left, index) => analyzePair(left, screenshots[index + 1], index));
-  assert.equal(results.length, 19);
-  assert.equal(results.filter((result) => result.mode === "auto").length, 19);
-});
+for (const count of [20, 99]) {
+  test(`${count} 张连续截图可依次生成 ${count - 1} 个可靠接缝`, () => {
+    const screenshots = Array.from({ length: count }, (_, index) => createScreenshot({ contentStart: index * 80 }));
+    const results = screenshots.slice(0, -1).map((left, index) => analyzePair(left, screenshots[index + 1], index));
+    assert.equal(results.length, count - 1);
+    assert.equal(results.filter((result) => result.mode === "auto").length, count - 1);
+  });
+}

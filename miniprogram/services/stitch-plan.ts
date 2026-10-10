@@ -1,6 +1,5 @@
 const MAX_OUTPUT_PIXELS = 16_000_000;
 const MAX_OUTPUT_EDGE = 32_767;
-export const MIN_OUTPUT_SHORT_EDGE = 480;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));

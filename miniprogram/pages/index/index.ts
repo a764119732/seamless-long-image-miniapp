@@ -4,7 +4,7 @@ import {
   releaseCanvasImages,
   canvasToPng
 } from "../../services/canvas";
-import { buildStitchPlan, MIN_OUTPUT_SHORT_EDGE } from "../../services/stitch-plan";
+import { buildStitchPlan } from "../../services/stitch-plan";
 import { validateSourceImage } from "../../lib/source-validation";
 
 type PendingAnalysis = {
@@ -15,11 +15,11 @@ type PendingAnalysis = {
 const SHARE_TITLE = "青缝长图拼接｜连续截图自动去重复叠";
 const SHARE_PATH = "/pages/index/index";
 const SHARE_IMAGE = "/assets/share-card.png";
+const MAX_IMAGES = 99;
 
 let analyzerWorker: WorkerLike | null = null;
 let activeJobId = "";
 let pendingAnalysis = new Map<number, PendingAnalysis>();
-let analysisCache: AnalysisImage[] = [];
 let editingOriginal: SeamDecision | null = null;
 
 function cropPreviewSize(image: SourceImage) {
@@ -56,7 +56,7 @@ function getCanvasNode(page: any, selector: string): Promise<CanvasLike> {
 }
 
 function canvasExport(canvas: CanvasLike, plan: StitchPlan, page: unknown): Promise<string> {
-  return renderPlanToCanvas(canvas, (page as any).data.images, plan).then(async (retainedImages) => {
+  return renderPlanToCanvas(canvas, (page as any).data.images, plan, page).then(async (retainedImages) => {
     try {
       return await canvasToPng(canvas, plan.outputWidth, plan.outputHeight, page);
     } finally {
@@ -70,6 +70,8 @@ Page({
     state: "select" as AppState,
     statusBarHeight: 24,
     stitchDirection: "vertical" as StitchDirection,
+    maxImages: MAX_IMAGES,
+    selectingImages: false,
     images: [] as SourceImage[],
     seams: [] as SeamDecision[],
     confirmedManualPairs: [] as number[],
@@ -152,9 +154,10 @@ Page({
   },
 
   chooseImages(this: any) {
-    const remaining = 20 - this.data.images.length;
+    if (this.data.selectingImages) return;
+    const remaining = MAX_IMAGES - this.data.images.length;
     if (remaining <= 0) {
-      wx.showToast({ title: "最多选择 20 张", icon: "none" });
+      wx.showToast({ title: `最多选择 ${MAX_IMAGES} 张`, icon: "none" });
       return;
     }
     wx.getPrivacySetting({
@@ -191,20 +194,22 @@ Page({
   },
 
   openMediaPicker(this: any) {
-    const remaining = 20 - this.data.images.length;
+    if (this.data.selectingImages) return;
+    const remaining = MAX_IMAGES - this.data.images.length;
     if (remaining <= 0) {
-      wx.showToast({ title: "最多选择 20 张", icon: "none" });
+      wx.showToast({ title: `最多选择 ${MAX_IMAGES} 张`, icon: "none" });
       return;
     }
+    this.setData({ selectingImages: true });
     wx.chooseMedia({
-      count: remaining,
+      count: Math.min(20, remaining),
       mediaType: ["image"],
       sourceType: ["album"],
       sizeType: ["original"],
       success: async (result: { tempFiles: Array<{ tempFilePath: string }> }) => {
         try {
           const additions: SourceImage[] = [];
-          for (const file of result.tempFiles) {
+          for (const file of result.tempFiles.slice(0, Math.min(20, remaining))) {
             const info = await getImageInfo(file.tempFilePath);
             validateSourceImage(info, this.data.stitchDirection);
             additions.push({
@@ -221,9 +226,12 @@ Page({
           this.setData({ images, errorMessage: "" });
         } catch (error) {
           this.showError(error);
+        } finally {
+          this.setData({ selectingImages: false });
         }
       },
       fail: (error: { errMsg?: string }) => {
+        this.setData({ selectingImages: false });
         const message = error.errMsg || "";
         if (message.includes("cancel")) return;
         if (message.includes("privacy permission")) {
@@ -264,13 +272,15 @@ Page({
   },
 
   async startAnalysis(this: any) {
+    if (this.data.selectingImages || this.data.state === "analyzing") return;
     if (this.data.images.length < 2) {
       wx.showToast({ title: "请至少选择 2 张截图", icon: "none" });
       return;
     }
     this.ensureWorker();
     activeJobId = createId("job");
-    analysisCache = [];
+    const jobId = activeJobId;
+    const images = [...this.data.images] as SourceImage[];
     this.setData({
       state: "analyzing",
       progress: 2,
@@ -282,20 +292,17 @@ Page({
     });
 
     try {
-      for (let index = 0; index < this.data.images.length; index += 1) {
-        analysisCache.push(await createAnalysisImage(this.data.images[index]));
-        this.setData({
-          progress: Math.round(((index + 1) / this.data.images.length) * 32),
-          progressText: `正在准备第 ${index + 1} / ${this.data.images.length} 张`
-        });
-      }
-
+      let left = await createAnalysisImage(images[0]!);
+      if (jobId !== activeJobId) return;
       const seams: SeamDecision[] = [];
-      for (let pairIndex = 0; pairIndex < analysisCache.length - 1; pairIndex += 1) {
-        this.setData({ progressText: `正在分析接缝 ${pairIndex + 1} / ${analysisCache.length - 1}` });
-        seams.push(await this.analyzePair(pairIndex));
+      for (let pairIndex = 0; pairIndex < images.length - 1; pairIndex += 1) {
+        this.setData({ progressText: `正在分析接缝 ${pairIndex + 1} / ${images.length - 1}` });
+        const right = await createAnalysisImage(images[pairIndex + 1]!);
+        if (jobId !== activeJobId) return;
+        seams.push(await this.analyzePair(pairIndex, left, right));
+        if (jobId !== activeJobId) return;
+        left = right;
       }
-      if (activeJobId === "") return;
 
       const firstManual = seams.findIndex((seam) => seam.mode === "manual");
       this.setData({
@@ -308,11 +315,11 @@ Page({
       if (firstManual >= 0) this.beginSeamEdit(firstManual);
       else setTimeout(() => this.renderOverview(), 40);
     } catch (error) {
-      this.showError(error);
+      if (jobId === activeJobId) this.showError(error);
     }
   },
 
-  analyzePair(this: any, pairIndex: number): Promise<SeamDecision> {
+  analyzePair(this: any, pairIndex: number, left: AnalysisImage, right: AnalysisImage): Promise<SeamDecision> {
     return new Promise((resolve, reject) => {
       if (!analyzerWorker) {
         reject(new Error("图片分析进程未启动"));
@@ -323,8 +330,8 @@ Page({
         type: "ANALYZE_PAIR",
         jobId: activeJobId,
         pairIndex,
-        left: analysisCache[pairIndex],
-        right: analysisCache[pairIndex + 1],
+        left,
+        right,
         direction: this.data.stitchDirection
       } as WorkerRequest);
     });
@@ -337,7 +344,6 @@ Page({
     pendingAnalysis.forEach((pending) => pending.reject(new Error("用户取消分析")));
     pendingAnalysis.clear();
     activeJobId = "";
-    analysisCache = [];
     this.setData({ state: "select", progress: 0 });
   },
 
@@ -493,7 +499,7 @@ Page({
         outputWidth: Math.max(1, Math.floor(plan.outputWidth * previewScale)),
         outputHeight: Math.max(1, Math.floor(plan.outputHeight * previewScale))
       };
-      const retainedImages = await renderPlanToCanvas(canvas, this.data.images, previewPlan);
+      const retainedImages = await renderPlanToCanvas(canvas, this.data.images, previewPlan, this);
       let previewPath = "";
       try {
         previewPath = await canvasToPng(
@@ -539,7 +545,6 @@ Page({
           multiplier,
           this.data.stitchDirection
         );
-        if (Math.min(plan.outputWidth, plan.outputHeight) < MIN_OUTPUT_SHORT_EDGE) break;
         this.setData({ progress: 20 + attempt * 20, progressText: `正在生成长图${attempt ? "（自动降低尺寸）" : ""}` });
         try {
           const resultPath = await canvasExport(canvas, plan, this);
@@ -551,7 +556,6 @@ Page({
             resultHeight: plan.outputHeight,
             resultWasScaled: plan.scale < 0.999
           });
-          analysisCache = [];
           return;
         } catch (error) {
           lastError = error instanceof Error ? error : new Error("长图导出失败");
@@ -618,8 +622,8 @@ Page({
       analyzerWorker.postMessage({ type: "CANCEL", jobId: activeJobId } as WorkerRequest);
     }
     activeJobId = "";
+    pendingAnalysis.forEach((pending) => pending.reject(new Error("用户取消分析")));
     pendingAnalysis.clear();
-    analysisCache = [];
     editingOriginal = null;
     if (terminateWorker && analyzerWorker) {
       analyzerWorker.terminate();

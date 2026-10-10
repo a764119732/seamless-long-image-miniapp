@@ -24,7 +24,7 @@
     <scroll-view wx:else class="selected-list" scroll-y enhanced show-scrollbar="false">
       <view wx:for="{{images}}" wx:key="id" class="selected-row">
         <text class="order-number">{{index + 1}}</text>
-        <image class="selected-thumb" src="{{item.thumbPath}}" mode="aspectFill" />
+        <image class="selected-thumb" src="{{item.thumbPath}}" mode="aspectFill" lazy-load />
         <view class="selected-meta">
           <text class="selected-name">第 {{index + 1}} 张截图</text>
           <text class="selected-size">{{item.width}} × {{item.height}}</text>
@@ -44,12 +44,13 @@
     </scroll-view>
 
     <view class="bottom-actions select-actions">
-      <button class="primary-button" bindtap="chooseImages">
+      <button class="primary-button" bindtap="chooseImages" disabled="{{selectingImages || images.length >= maxImages}}" loading="{{selectingImages}}">
         <image src="/assets/icons/image.svg" mode="aspectFit" />
         <text>{{images.length ? '继续选择' : '从相册选择'}}</text>
       </button>
-      <button wx:if="{{images.length >= 2}}" class="secondary-button" bindtap="startAnalysis">开始拼接</button>
-      <text class="helper-text">请按{{stitchDirection === 'horizontal' ? '从左到右' : '从上到下'}}的顺序选择 2–20 张</text>
+      <button wx:if="{{images.length >= 2}}" class="secondary-button" bindtap="startAnalysis" disabled="{{selectingImages}}">开始拼接</button>
+      <text class="helper-text">已选 {{images.length}} / {{maxImages}} 张 · 每次最多选 20 张，可继续添加</text>
+      <text class="helper-text">请按{{stitchDirection === 'horizontal' ? '从左到右' : '从上到下'}}顺序选择；超长结果会缩小，文字可能变小</text>
     </view>
   </view>
 
@@ -172,6 +173,7 @@
       <text>已生成 1 张无重叠{{stitchDirection === 'horizontal' ? '宽图' : '长图'}}</text>
     </view>
     <text class="result-size">{{resultWidth}} × {{resultHeight}}{{resultWasScaled ? ' · 已自动等比缩小' : ''}}</text>
+    <text wx:if="{{resultWidth < 480 || resultHeight < 480}}" class="helper-text">图片较长，文字已缩小，建议放大查看</text>
     <view class="bottom-actions complete-actions">
       <button class="primary-button" bindtap="saveResult">
         <image src="/assets/icons/download.svg" mode="aspectFit" />

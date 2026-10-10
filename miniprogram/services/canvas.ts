@@ -77,7 +77,8 @@ export function releaseCanvasImages(images: CanvasImageLike[]): void {
 export async function renderPlanToCanvas(
   canvas: CanvasLike,
   images: SourceImage[],
-  plan: StitchPlan
+  plan: StitchPlan,
+  component?: unknown
 ): Promise<CanvasImageLike[]> {
   canvas.width = plan.outputWidth;
   canvas.height = plan.outputHeight;
@@ -93,10 +94,6 @@ export async function renderPlanToCanvas(
     for (const segment of plan.segments) {
       const source = images[segment.imageIndex];
       if (!source) throw new Error("找不到待导出的源图片");
-      const image = await loadCanvasImage(canvas, source.path);
-      retainedImages.push(image);
-      const sourceScaleX = (image.width || source.width) / source.width;
-      const sourceScaleY = (image.height || source.height) / source.height;
       normalizedOffset += plan.direction === "horizontal" ? segment.normalizedWidth : segment.normalizedHeight;
       const end = Math.min(
         plan.direction === "horizontal" ? plan.outputWidth : plan.outputHeight,
@@ -105,6 +102,10 @@ export async function renderPlanToCanvas(
       const drawWidth = plan.direction === "horizontal" ? end - outputX : plan.outputWidth;
       const drawHeight = plan.direction === "vertical" ? end - outputY : plan.outputHeight;
       if (drawWidth <= 0 || drawHeight <= 0) continue;
+      const image = await loadCanvasImage(canvas, source.path);
+      retainedImages.push(image);
+      const sourceScaleX = (image.width || source.width) / source.width;
+      const sourceScaleY = (image.height || source.height) / source.height;
       context.drawImage(
         image,
         segment.sourceX * sourceScaleX,
@@ -118,6 +119,15 @@ export async function renderPlanToCanvas(
       );
       if (plan.direction === "horizontal") outputX += drawWidth;
       else outputY += drawHeight;
+      if (images.length > 20 && retainedImages.length === 4) {
+        // 先完成本机快照再释放源图，避免 iOS 延迟绘制和 99 张原图同时驻留。
+        const checkpoint = await canvasToPng(canvas, plan.outputWidth, plan.outputHeight, component);
+        releaseCanvasImages(retainedImages);
+        retainedImages.length = 0;
+        await new Promise<void>((resolve) => {
+          wx.getFileSystemManager().unlink({ filePath: checkpoint, complete: () => resolve() });
+        });
+      }
     }
     return retainedImages;
   } catch (error) {

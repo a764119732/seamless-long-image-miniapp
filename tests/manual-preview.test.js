@@ -148,3 +148,63 @@ test("联动滑块在中点和边界不改变总保留长度", () => {
     assert.equal(buildStitchPlan(page.data.images, page.data.seams).rawHeight, before);
   }
 });
+
+test("99 张上下和左右拼接都能导出一张图，允许短边小于 480 且保持尺寸上限", async () => {
+  for (const direction of ["vertical", "horizontal"]) {
+    let saves = 0;
+    const { page, buildStitchPlan } = loadPage({
+      canvasToTempFilePath({ success }) { success({ tempFilePath: "output.png" }); },
+      getFileSystemManager() { return { unlink({ complete }) { complete(); } }; },
+      saveImageToPhotosAlbum({ filePath, success }) { assert.equal(filePath, "output.png"); saves += 1; success(); },
+      showToast() {}
+    });
+    const canvas = {
+      width: 0, height: 0,
+      getContext() { return { fillRect() {}, drawImage() {} }; },
+      createImage() { return { width: 0, height: 0, onload: null, onerror: null,
+        set src(value) { if (value) this.onload(); } }; }
+    };
+    page.createSelectorQuery = () => ({ select() { return this; }, fields() { return this; },
+      exec(callback) { callback([{ node: canvas }]); } });
+    page.data.stitchDirection = direction;
+    page.data.images = Array.from({ length: 99 }, (_, i) => ({ id: String(i), path: `${i}.png`,
+      width: direction === "vertical" ? 1080 : 2400, height: direction === "vertical" ? 2400 : 1080 }));
+    page.data.seams = Array.from({ length: 98 }, (_, pairIndex) => ({ pairIndex, mode: "auto",
+      prevCropEndRatio: 0.75, nextCropStartRatio: 0.25 }));
+    const plan = buildStitchPlan(page.data.images, page.data.seams, 1, direction);
+    await page.exportResult();
+    assert.equal(page.data.state, "complete");
+    assert.equal(page.data.resultPath, "output.png");
+    assert.deepEqual([page.data.resultWidth, page.data.resultHeight], [plan.outputWidth, plan.outputHeight]);
+    assert.ok(Math.min(plan.outputWidth, plan.outputHeight) < 480);
+    assert.ok(Math.max(plan.outputWidth, plan.outputHeight) <= 32767);
+    assert.ok(plan.outputWidth * plan.outputHeight <= 16_000_000);
+    assert.equal(page.data.resultWasScaled, true);
+    page.saveResult();
+    assert.equal(saves, 1);
+  }
+});
+
+test("99 张超长图导出失败最多重试三次，保留选图并提示失败", async () => {
+  let attempts = 0;
+  const { page } = loadPage({
+    canvasToTempFilePath({ fail }) { attempts += 1; fail({ errMsg: "图片尺寸超过设备限制" }); }
+  });
+  const canvas = {
+    getContext() { return { fillRect() {}, drawImage() {} }; },
+    createImage() { return { width: 0, height: 0, onload: null, onerror: null,
+      set src(value) { if (value) this.onload(); } }; }
+  };
+  page.createSelectorQuery = () => ({ select() { return this; }, fields() { return this; },
+    exec(callback) { callback([{ node: canvas }]); } });
+  page.data.images = Array.from({ length: 99 }, (_, i) => ({ id: String(i), path: `${i}.png`,
+    width: 1080, height: 2400 }));
+  page.data.seams = Array.from({ length: 98 }, (_, pairIndex) => ({ pairIndex, mode: "auto",
+    prevCropEndRatio: 0.75, nextCropStartRatio: 0.25 }));
+  await page.exportResult();
+  assert.equal(attempts, 3);
+  assert.equal(page.data.state, "error");
+  assert.equal(page.data.errorMessage, "图片尺寸超过设备限制");
+  assert.equal(page.data.images.length, 99);
+  assert.equal(page.data.resultPath, "");
+});

@@ -213,3 +213,60 @@ test("分析像素读取失败也释放解码图片及离屏画布", async () =>
   assert.equal(image.onerror, null);
   assert.equal(canvas.width * canvas.height, 1);
 });
+
+test("99 张分批绘制，快照完成前保留源图，临时快照清理且全部片段绘入一张图", async () => {
+  const { canvas, draws } = createFakeCanvas();
+  let live = 0;
+  let peak = 0;
+  let snapshots = 0;
+  const removed = [];
+  canvas.createImage = () => {
+    let src = "";
+    return { width: 100, height: 200, onload: null, onerror: null,
+      get src() { return src; },
+      set src(value) {
+        if (value) { live += 1; peak = Math.max(peak, live); src = value; this.onload(); }
+        else if (src) { live -= 1; src = ""; }
+      }
+    };
+  };
+  const { renderPlanToCanvas, releaseCanvasImages } = loadCanvasModule({
+    canvasToTempFilePath({ success }) {
+      assert.equal(live, 4);
+      success({ tempFilePath: `checkpoint-${++snapshots}.png` });
+    },
+    getFileSystemManager() { return { unlink({ filePath, complete }) { removed.push(filePath); complete(); } }; }
+  });
+  const images = Array.from({ length: 99 }, (_, i) => ({ path: `${i}.png`, width: 100, height: 200 }));
+  const retained = await renderPlanToCanvas(canvas, images, {
+    direction: "vertical", outputWidth: 100, outputHeight: 19800, scale: 1,
+    segments: images.map((_, imageIndex) => ({ imageIndex, sourceX: 0, sourceY: 0,
+      sourceWidth: 100, sourceHeight: 200, normalizedWidth: 100, normalizedHeight: 200 }))
+  });
+  assert.equal(draws.length, 99);
+  assert.equal(draws.at(-1)[5] + draws.at(-1)[7], 19800);
+  assert.equal(peak, 4);
+  assert.equal(live, 3);
+  assert.equal(snapshots, 24);
+  assert.equal(removed.length, snapshots);
+  releaseCanvasImages(retained);
+  assert.equal(live, 0);
+});
+
+test("分批绘图的快照失败会释放当前批次，继续交给导出重试而不保存缺失内容", async () => {
+  const { canvas } = createFakeCanvas();
+  const created = [];
+  const makeImage = canvas.createImage;
+  canvas.createImage = () => { const image = makeImage(); created.push(image); return image; };
+  const { renderPlanToCanvas } = loadCanvasModule({
+    canvasToTempFilePath({ fail }) { fail({ errMsg: "checkpoint failed" }); }
+  });
+  const images = Array.from({ length: 99 }, (_, i) => ({ path: `${i}.png`, width: 100, height: 200 }));
+  await assert.rejects(renderPlanToCanvas(canvas, images, {
+    direction: "vertical", outputWidth: 100, outputHeight: 19800, scale: 1,
+    segments: images.map((_, imageIndex) => ({ imageIndex, sourceX: 0, sourceY: 0,
+      sourceWidth: 100, sourceHeight: 200, normalizedWidth: 100, normalizedHeight: 200 }))
+  }), /checkpoint failed/);
+  assert.equal(created.length, 4);
+  assert.ok(created.every(image => image.src === ""));
+});

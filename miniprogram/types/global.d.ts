@@ -9,6 +9,7 @@ declare const wx: {
   createOffscreenCanvas(options: Record<string, unknown>): CanvasLike;
   createWorker(path: string): WorkerLike;
   canvasToTempFilePath(options: Record<string, unknown>, component?: unknown): void;
+  getFileSystemManager(): { unlink(options: Record<string, unknown>): void };
   saveImageToPhotosAlbum(options: Record<string, unknown>): void;
   openSetting(options?: Record<string, unknown>): void;
   openPrivacyContract(options: Record<string, unknown>): void;
