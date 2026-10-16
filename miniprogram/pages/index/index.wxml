@@ -3,7 +3,7 @@
     <view class="select-copy">
       <text class="brand-title">青缝长图</text>
       <text class="screen-title select-title">选择图片</text>
-      <text class="screen-subtitle">截图去重或完整拼图，图片仅在本机处理</text>
+      <text class="screen-subtitle">长图拼接或一图切九张，图片仅在本机处理</text>
     </view>
 
     <view class="direction-switch" aria-label="拼接方向">
@@ -50,14 +50,14 @@
       </button>
       <button wx:if="{{images.length >= 2}}" class="secondary-button" bindtap="startAnalysis" disabled="{{selectingImages}}">截图去重拼接</button>
       <button wx:if="{{images.length >= 2}}" class="secondary-button" bindtap="stitchFullImages" disabled="{{selectingImages}}">直接拼接（保留完整图片）</button>
-      <button wx:if="{{images.length >= 2}}" class="text-button" bindtap="startPhotoGrid" disabled="{{selectingImages}}">宫格拼图 · 2–9张 · 广告解锁导出</button>
+      <button wx:if="{{images.length === 1}}" class="secondary-button" bindtap="startPhotoGrid" disabled="{{selectingImages}}">九宫格切图 · 一张切九张</button>
       <text class="helper-text">已选 {{images.length}} / {{maxImages}} 张 · 每次最多选 20 张，可继续添加</text>
-      <text class="helper-text">请按{{stitchDirection === 'horizontal' ? '从左到右' : '从上到下'}}顺序选择；超长结果会缩小，文字可能变小</text>
+      <text class="helper-text">切九宫格选 1 张；长图拼接选 2–99 张，超长结果会缩小</text>
     </view>
   </view>
 
   <view wx:elif="{{state === 'analyzing' || state === 'exporting'}}" class="screen processing-screen">
-    <text class="top-title">{{state === 'analyzing' ? '正在识别重叠内容' : (gridMode ? '正在生成宫格拼图' : (stitchDirection === 'horizontal' ? '正在生成宽图' : '正在生成长图'))}}</text>
+    <text class="top-title">{{state === 'analyzing' ? '正在识别重叠内容' : (gridMode ? '正在生成九张切图' : (stitchDirection === 'horizontal' ? '正在生成宽图' : '正在生成长图'))}}</text>
     <view class="processing-visual">
       <view class="scan-card scan-card-one"></view>
       <view class="scan-card scan-card-two"></view>
@@ -70,10 +70,16 @@
   </view>
 
   <view wx:elif="{{state === 'preview'}}" class="screen preview-screen">
-    <text class="top-title">{{gridMode ? '宫格拼图预览' : '拼接预览'}}</text>
+    <text class="top-title">{{gridMode ? '九宫格切图预览' : '拼接预览'}}</text>
     <scroll-view class="preview-scroll" scroll-x="{{!gridMode && stitchDirection === 'horizontal'}}" scroll-y enhanced show-scrollbar="false">
+      <view wx:if="{{gridMode && previewPath}}" class="grid-cut-preview" style="width: {{previewCanvasWidth}}px; height: {{previewCanvasHeight}}px;">
+        <image class="grid-cut-source" src="{{previewPath}}" mode="aspectFit" />
+        <view class="grid-cut-lines">
+          <view wx:for="{{gridNumbers}}" wx:key="*this" class="grid-cut-cell"><text>{{item}}</text></view>
+        </view>
+      </view>
       <image
-        wx:if="{{previewPath}}"
+        wx:elif="{{previewPath}}"
         class="overview-image {{gridMode ? 'vertical' : stitchDirection}}"
         style="width: {{previewCanvasWidth}}px; height: {{previewCanvasHeight}}px;"
         src="{{previewPath}}"
@@ -83,7 +89,7 @@
     </scroll-view>
     <view class="removed-status">
       <image src="/assets/icons/check.svg" mode="aspectFit" />
-      <text wx:if="{{gridMode}}">按顺序排列，完整保留照片，空白处留白</text>
+      <text wx:if="{{gridMode}}">完整保留原图，补白成正方形，按 1–9 顺序切分</text>
       <text wx:elif="{{fullImageStitch}}">完整保留全部图片，按比例统一{{stitchDirection === 'horizontal' ? '高度' : '宽度'}}</text>
       <text wx:elif="{{autoRemovedCount}}">已自动去除 {{autoRemovedCount}} 处重复内容</text>
       <text wx:elif="{{seams[currentSeamIndex].orderHint}}">检测到图片顺序可能反了</text>
@@ -102,9 +108,9 @@
       </view>
       <view class="button-row">
         <button wx:if="{{!fullImageStitch}}" class="outline-button" bindtap="openCurrentSeam">微调接缝</button>
-        <button class="primary-button compact" bindtap="confirmStitch" disabled="{{adBusy}}" loading="{{adBusy}}">{{gridMode ? (gridUnlocked ? '导出本次拼图' : '观看广告并导出') : '确认拼接'}}</button>
+        <button class="primary-button compact" bindtap="confirmStitch" disabled="{{adBusy || !previewPath}}" loading="{{adBusy}}">{{gridMode ? (gridUnlocked ? '导出九张图片' : '观看广告并导出九张') : '确认拼接'}}</button>
       </view>
-      <text wx:if="{{gridMode && !gridUnlocked}}" class="helper-text">自愿看完一次广告解锁本次导出；取消不影响普通拼接。无可用广告时本次免费。</text>
+      <text wx:if="{{gridMode && !gridUnlocked}}" class="helper-text">预览免费，自愿看完一次广告解锁九张导出；提前关闭保留预览，无可用广告时本次免费。</text>
       <text wx:if="{{gridMode}}" class="helper-text">广告由微信提供，原图和结果仅在本机处理。</text>
       <button class="text-button" bindtap="returnToSelection" disabled="{{adBusy}}">返回重选与排序</button>
     </view>
@@ -160,15 +166,21 @@
   </view>
 
   <view wx:elif="{{state === 'complete'}}" class="screen complete-screen">
-    <text class="top-title">{{gridMode ? '宫格拼图完成' : (stitchDirection === 'horizontal' ? '宽图拼接完成' : '长图拼接完成')}}</text>
+    <text class="top-title">{{gridMode ? '九张切图已生成' : (stitchDirection === 'horizontal' ? '宽图拼接完成' : '长图拼接完成')}}</text>
     <scroll-view
-      class="result-preview-shell {{gridMode ? 'vertical' : stitchDirection}}"
+      class="result-preview-shell {{gridMode ? 'grid-result-shell' : stitchDirection}}"
       scroll-x="{{!gridMode && stitchDirection === 'horizontal'}}"
       scroll-y="{{gridMode || stitchDirection === 'vertical'}}"
       enhanced
       show-scrollbar="false"
     >
-      <image
+      <view wx:if="{{gridMode}}" class="grid-cut-results">
+        <view wx:for="{{resultPaths}}" wx:key="*this" class="grid-cut-tile">
+          <image src="{{item}}" mode="aspectFit" />
+          <text>{{index + 1}}</text>
+        </view>
+      </view>
+      <image wx:else
         class="result-preview {{gridMode ? 'vertical' : stitchDirection}}"
         src="{{resultPath}}"
         mode="{{!gridMode && stitchDirection === 'horizontal' ? 'heightFix' : 'widthFix'}}"
@@ -176,19 +188,20 @@
     </scroll-view>
     <view class="removed-status result-status">
       <image src="/assets/icons/check.svg" mode="aspectFit" />
-      <text wx:if="{{gridMode}}">已生成 1 张宫格拼图，完整保留全部照片</text>
+      <text wx:if="{{gridMode}}">已生成 9 张独立图片，按左到右、上到下排列</text>
       <text wx:else>已生成 1 张{{fullImageStitch ? '完整拼接的' : '无重叠'}}{{stitchDirection === 'horizontal' ? '宽图' : '长图'}}</text>
     </view>
-    <text class="result-size">{{resultWidth}} × {{resultHeight}}{{resultWasScaled ? ' · 已自动等比缩小' : ''}}</text>
+    <text class="result-size">{{gridMode ? '每张 ' : ''}}{{resultWidth}} × {{resultHeight}}{{resultWasScaled ? ' · 已自动等比缩小' : ''}}</text>
+    <text wx:if="{{gridMode}}" class="helper-text">发朋友圈时按上方 1–9 顺序选图。相册的显示顺序可能因手机而异。</text>
     <text wx:if="{{!gridMode && (resultWidth < 480 || resultHeight < 480)}}" class="helper-text">图片较长，文字已缩小，建议放大查看</text>
     <view class="bottom-actions complete-actions">
-      <button class="primary-button" bindtap="saveResult">
+      <button class="primary-button" bindtap="saveResult" disabled="{{savingResult || (gridMode && savedGridCount === 9)}}" loading="{{savingResult}}">
         <image src="/assets/icons/download.svg" mode="aspectFit" />
-        <text>保存到相册</text>
+        <text>{{gridMode ? (savedGridCount === 9 ? '九张已保存' : (savingResult ? '正在保存 ' + savedGridCount + '/9' : (savedGridCount ? '继续保存剩余图片' : '保存全部九张到相册'))) : '保存到相册'}}</text>
       </button>
-      <button class="secondary-button" bindtap="restart">
+      <button class="secondary-button" bindtap="restart" disabled="{{savingResult}}">
         <image src="/assets/icons/refresh.svg" mode="aspectFit" />
-        <text>重新拼接</text>
+        <text>{{gridMode ? '重新选图' : '重新拼接'}}</text>
       </button>
       <view class="privacy-note">
         <image src="/assets/icons/lock.svg" mode="aspectFit" />
@@ -207,7 +220,7 @@
   <view wx:if="{{showPrivacy}}" class="privacy-overlay">
     <view class="privacy-dialog">
       <text class="privacy-title">隐私保护提示</text>
-      <text class="privacy-description">为了选择用于拼接的图片，需要访问你主动选择的照片。图片只在本机处理，不会上传服务器。</text>
+      <text class="privacy-description">为了选择用于拼接或九宫格切图的图片，需要访问你主动选择的照片。图片只在本机处理，不会上传服务器。</text>
       <button class="privacy-contract-link" bindtap="openPrivacyContract">{{privacyContractName}}</button>
       <view class="button-row privacy-actions">
         <button class="secondary-button" bindtap="handlePrivacyDisagree">暂不同意</button>

@@ -2,7 +2,7 @@ interface PhotoGridPlan {
   outputWidth: number;
   outputHeight: number;
   scale: number;
-  cells: Array<{ imageIndex: number; x: number; y: number; size: number }>;
+  cells: Array<{ x: number; y: number; size: number }>;
 }
 
 interface RewardedVideoAdLike {

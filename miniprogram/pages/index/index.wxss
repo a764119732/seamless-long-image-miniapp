@@ -762,6 +762,67 @@
   pointer-events: none;
 }
 
+.grid-cut-preview {
+  position: relative;
+  margin: 0 auto;
+}
+
+.grid-cut-source,
+.grid-cut-lines {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+}
+
+.grid-cut-lines,
+.grid-cut-results {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+}
+
+.result-preview-shell.grid-result-shell {
+  width: 100%;
+}
+
+.grid-cut-cell {
+  box-sizing: border-box;
+  border: 1px solid rgba(8, 169, 155, 0.65);
+}
+
+.grid-cut-cell text,
+.grid-cut-tile text {
+  display: inline-block;
+  padding: 2rpx 10rpx;
+  color: #ffffff;
+  background: rgba(16, 18, 17, 0.65);
+  font-size: 24rpx;
+}
+
+.grid-cut-results {
+  width: 100%;
+  gap: 6rpx;
+}
+
+.grid-cut-tile {
+  position: relative;
+  padding-top: 100%;
+}
+
+.grid-cut-tile image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.grid-cut-tile text {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
 .overview-canvas-buffer {
   position: fixed;
   left: -10000px;

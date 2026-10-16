@@ -6,7 +6,7 @@ import {
 } from "../../services/canvas";
 import { buildStitchPlan } from "../../services/stitch-plan";
 import { validateSourceImage } from "../../lib/source-validation";
-import { buildPhotoGridPlan, renderPhotoGridToCanvas } from "../../services/photo-grid";
+import { buildPhotoGridPlan, renderPhotoGridToCanvas, exportPhotoGridTiles } from "../../services/photo-grid";
 import { watchGridRewardedAd, cancelRewardedAd } from "../../services/rewarded-ad";
 
 type PendingAnalysis = {
@@ -79,6 +79,10 @@ Page({
     gridMode: false,
     gridUnlocked: false,
     adBusy: false,
+    gridNumbers: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    resultPaths: [] as string[],
+    savedGridCount: 0,
+    savingResult: false,
     maxImages: MAX_IMAGES,
     selectingImages: false,
     images: [] as SourceImage[],
@@ -304,14 +308,14 @@ Page({
     try {
       buildPhotoGridPlan(this.data.images);
     } catch (error) {
-      wx.showToast({ title: error instanceof Error ? error.message : "请选择 2–9 张图片", icon: "none" });
+      wx.showToast({ title: error instanceof Error ? error.message : "请选择 1 张图片", icon: "none" });
       return;
     }
     this.releaseTask(false);
     activeJobId = createId("grid");
     this.setData({ state: "preview", gridMode: true, gridUnlocked: false, adBusy: false,
       fullImageStitch: true, seams: [], confirmedManualPairs: [], currentSeamIndex: 0,
-      autoRemovedCount: 0, previewPath: "", errorMessage: "" });
+      autoRemovedCount: 0, previewPath: "", resultPath: "", resultPaths: [], savedGridCount: 0, errorMessage: "" });
     setTimeout(() => this.renderOverview(), 40);
   },
 
@@ -533,18 +537,18 @@ Page({
       const plan = this.data.gridMode ? buildPhotoGridPlan(this.data.images)
         : buildStitchPlan(this.data.images, this.data.seams, 1, this.data.stitchDirection);
       const logicalWidth =
-        "cells" in plan ? 320 : plan.direction === "horizontal"
+        "cells" in plan ? 270 : plan.direction === "horizontal"
           ? Math.max(360, Math.min(1200, Math.round((plan.rawWidth / plan.baseHeight) * 228)))
           : 228;
       const logicalHeight =
-        "cells" in plan ? Math.round(320 * plan.outputHeight / plan.outputWidth) : plan.direction === "vertical"
+        "cells" in plan ? logicalWidth : plan.direction === "vertical"
           ? Math.max(360, Math.min(1200, Math.round((plan.rawHeight / plan.baseWidth) * logicalWidth)))
           : 228;
       this.setData({ previewCanvasWidth: logicalWidth, previewCanvasHeight: logicalHeight, previewPath: "" });
       await new Promise((resolve) => setTimeout(resolve, 30));
       const canvas = await getCanvasNode(this, "#overviewCanvas");
       const previewScale = Math.min(logicalWidth / plan.outputWidth, logicalHeight / plan.outputHeight);
-      const previewPlan = {
+      const previewPlan = this.data.gridMode ? buildPhotoGridPlan(this.data.images, previewScale) : {
         ...plan,
         scale: plan.scale * previewScale,
         outputWidth: Math.max(1, Math.floor(plan.outputWidth * previewScale)),
@@ -571,7 +575,7 @@ Page({
           const result = await watchGridRewardedAd();
           if (jobId !== activeJobId || this.data.state !== "preview") return;
           if (result === "cancelled") {
-            wx.showToast({ title: "未看完广告，仍可返回普通拼接", icon: "none" });
+            wx.showToast({ title: "未看完广告，已保留切图预览", icon: "none" });
             return;
           }
           if (result === "unavailable") wx.showToast({ title: "暂时无可用广告，本次免费导出", icon: "none" });
@@ -594,7 +598,8 @@ Page({
   },
 
   async exportResult(this: any) {
-    this.setData({ state: "exporting", progress: 0, progressText: this.data.gridMode ? "正在生成宫格拼图" : "正在生成长图" });
+    const jobId = activeJobId;
+    this.setData({ state: "exporting", progress: 0, progressText: this.data.gridMode ? "正在生成九张切图" : "正在生成长图" });
     try {
       const canvas = await getCanvasNode(this, "#exportCanvas");
       let multiplier = 1;
@@ -606,8 +611,16 @@ Page({
           multiplier,
           this.data.stitchDirection
         );
-        this.setData({ progress: 20 + attempt * 20, progressText: `正在生成${this.data.gridMode ? "宫格拼图" : "长图"}${attempt ? "（自动降低尺寸）" : ""}` });
+        this.setData({ progress: 20 + attempt * 20, progressText: `正在生成${this.data.gridMode ? "九张切图" : "长图"}${attempt ? "（自动降低尺寸）" : ""}` });
         try {
+          if ("cells" in plan) {
+            const resultPaths = await exportPhotoGridTiles(canvas, this.data.images, plan, this,
+              () => jobId === activeJobId);
+            this.setData({ state: "complete", progress: 100, resultPaths, resultPath: "",
+              resultWidth: plan.cells[0]!.size, resultHeight: plan.cells[0]!.size,
+              resultWasScaled: plan.outputWidth < Math.max(this.data.images[0].width, this.data.images[0].height) });
+            return;
+          }
           const resultPath = await canvasExport(canvas, plan, this);
           this.setData({
             state: "complete",
@@ -619,17 +632,22 @@ Page({
           });
           return;
         } catch (error) {
+          if (jobId !== activeJobId) return;
           lastError = error instanceof Error ? error : new Error("长图导出失败");
           multiplier *= 0.8;
         }
       }
       throw lastError || new Error("图片过长，请减少截图数量后重试");
     } catch (error) {
-      this.showError(error);
+      if (jobId === activeJobId) this.showError(error);
     }
   },
 
   saveResult(this: any) {
+    if (this.data.gridMode) {
+      this.saveGridResults();
+      return;
+    }
     if (!this.data.resultPath) return;
     wx.saveImageToPhotosAlbum({
       filePath: this.data.resultPath,
@@ -647,6 +665,35 @@ Page({
         wx.showToast({ title: "保存失败，请重试", icon: "none" });
       }
     });
+  },
+
+  async saveGridResults(this: any) {
+    if (this.data.savingResult || this.data.state !== "complete" || this.data.resultPaths.length !== 9) return;
+    const jobId = activeJobId;
+    const paths = [...this.data.resultPaths];
+    this.setData({ savingResult: true });
+    try {
+      for (let index = this.data.savedGridCount; index < paths.length; index += 1) {
+        if (jobId !== activeJobId) return;
+        await new Promise<void>((resolve, reject) => wx.saveImageToPhotosAlbum({
+          filePath: paths[index], success: () => resolve(), fail: reject
+        }));
+        if (jobId !== activeJobId) return;
+        this.setData({ savedGridCount: index + 1 });
+      }
+      wx.showToast({ title: "九张图片已保存", icon: "success" });
+    } catch (error) {
+      if (jobId !== activeJobId) return;
+      const message = (error as { errMsg?: string }).errMsg || "";
+      if (/auth|deny|permission/i.test(message)) {
+        wx.showModal({ title: "需要相册权限", content: `已保存 ${this.data.savedGridCount}/9 张，请允许保存后继续。`,
+          confirmText: "打开设置", success: (result: { confirm: boolean }) => result.confirm && wx.openSetting() });
+      } else {
+        wx.showToast({ title: `已保存 ${this.data.savedGridCount}/9 张，请重试`, icon: "none" });
+      }
+    } finally {
+      if (jobId === activeJobId) this.setData({ savingResult: false });
+    }
   },
 
   restart(this: any) {
@@ -693,6 +740,8 @@ Page({
     }
     activeJobId = "";
     cancelRewardedAd();
+    for (const filePath of this.data.resultPaths) wx.getFileSystemManager().unlink({ filePath, fail: () => {} });
+    this.setData({ resultPaths: [], savedGridCount: 0, savingResult: false });
     pendingAnalysis.forEach((pending) => pending.reject(new Error("用户取消分析")));
     pendingAnalysis.clear();
     editingOriginal = null;
