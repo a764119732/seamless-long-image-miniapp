@@ -6,6 +6,8 @@ import {
 } from "../../services/canvas";
 import { buildStitchPlan } from "../../services/stitch-plan";
 import { validateSourceImage } from "../../lib/source-validation";
+import { buildPhotoGridPlan, renderPhotoGridToCanvas } from "../../services/photo-grid";
+import { watchGridRewardedAd, cancelRewardedAd } from "../../services/rewarded-ad";
 
 type PendingAnalysis = {
   resolve: (result: SeamDecision) => void;
@@ -55,8 +57,11 @@ function getCanvasNode(page: any, selector: string): Promise<CanvasLike> {
   });
 }
 
-function canvasExport(canvas: CanvasLike, plan: StitchPlan, page: unknown): Promise<string> {
-  return renderPlanToCanvas(canvas, (page as any).data.images, plan, page).then(async (retainedImages) => {
+function canvasExport(canvas: CanvasLike, plan: StitchPlan | PhotoGridPlan, page: any): Promise<string> {
+  const render = "cells" in plan
+    ? renderPhotoGridToCanvas(canvas, page.data.images, plan)
+    : renderPlanToCanvas(canvas, page.data.images, plan, page);
+  return render.then(async (retainedImages) => {
     try {
       return await canvasToPng(canvas, plan.outputWidth, plan.outputHeight, page);
     } finally {
@@ -71,6 +76,9 @@ Page({
     statusBarHeight: 24,
     stitchDirection: "vertical" as StitchDirection,
     fullImageStitch: false,
+    gridMode: false,
+    gridUnlocked: false,
+    adBusy: false,
     maxImages: MAX_IMAGES,
     selectingImages: false,
     images: [] as SourceImage[],
@@ -284,10 +292,26 @@ Page({
       fixedTopRatio: 0, fixedBottomRatio: 0, confidence: 0, margin: 0, textureCoverage: 0, overlapRatio: 0
     }));
     this.setData({
-      state: "preview", fullImageStitch: true, seams,
+      state: "preview", fullImageStitch: true, gridMode: false, seams,
       confirmedManualPairs: seams.map(seam => seam.pairIndex),
       currentSeamIndex: 0, autoRemovedCount: 0, previewPath: "", errorMessage: ""
     });
+    setTimeout(() => this.renderOverview(), 40);
+  },
+
+  startPhotoGrid(this: any) {
+    if (this.data.selectingImages || this.data.state !== "select") return;
+    try {
+      buildPhotoGridPlan(this.data.images);
+    } catch (error) {
+      wx.showToast({ title: error instanceof Error ? error.message : "请选择 2–9 张图片", icon: "none" });
+      return;
+    }
+    this.releaseTask(false);
+    activeJobId = createId("grid");
+    this.setData({ state: "preview", gridMode: true, gridUnlocked: false, adBusy: false,
+      fullImageStitch: true, seams: [], confirmedManualPairs: [], currentSeamIndex: 0,
+      autoRemovedCount: 0, previewPath: "", errorMessage: "" });
     setTimeout(() => this.renderOverview(), 40);
   },
 
@@ -304,6 +328,7 @@ Page({
     this.setData({
       state: "analyzing",
       fullImageStitch: false,
+      gridMode: false,
       progress: 2,
       progressText: "正在读取图片",
       seams: [],
@@ -455,6 +480,9 @@ Page({
     this.setData({
       state: "select",
       fullImageStitch: false,
+      gridMode: false,
+      gridUnlocked: false,
+      adBusy: false,
       seams: [],
       confirmedManualPairs: [],
       progress: 0,
@@ -502,37 +530,27 @@ Page({
   async renderOverview(this: any) {
     if (this.data.state !== "preview") return;
     try {
-      const plan = buildStitchPlan(this.data.images, this.data.seams, 1, this.data.stitchDirection);
+      const plan = this.data.gridMode ? buildPhotoGridPlan(this.data.images)
+        : buildStitchPlan(this.data.images, this.data.seams, 1, this.data.stitchDirection);
       const logicalWidth =
-        plan.direction === "horizontal"
+        "cells" in plan ? 320 : plan.direction === "horizontal"
           ? Math.max(360, Math.min(1200, Math.round((plan.rawWidth / plan.baseHeight) * 228)))
           : 228;
       const logicalHeight =
-        plan.direction === "vertical"
+        "cells" in plan ? Math.round(320 * plan.outputHeight / plan.outputWidth) : plan.direction === "vertical"
           ? Math.max(360, Math.min(1200, Math.round((plan.rawHeight / plan.baseWidth) * logicalWidth)))
           : 228;
       this.setData({ previewCanvasWidth: logicalWidth, previewCanvasHeight: logicalHeight, previewPath: "" });
       await new Promise((resolve) => setTimeout(resolve, 30));
       const canvas = await getCanvasNode(this, "#overviewCanvas");
       const previewScale = Math.min(logicalWidth / plan.outputWidth, logicalHeight / plan.outputHeight);
-      const previewPlan: StitchPlan = {
+      const previewPlan = {
         ...plan,
         scale: plan.scale * previewScale,
         outputWidth: Math.max(1, Math.floor(plan.outputWidth * previewScale)),
         outputHeight: Math.max(1, Math.floor(plan.outputHeight * previewScale))
       };
-      const retainedImages = await renderPlanToCanvas(canvas, this.data.images, previewPlan, this);
-      let previewPath = "";
-      try {
-        previewPath = await canvasToPng(
-          canvas,
-          previewPlan.outputWidth,
-          previewPlan.outputHeight,
-          this
-        );
-      } finally {
-        releaseCanvasImages(retainedImages);
-      }
+      const previewPath = await canvasExport(canvas, previewPlan, this);
       if (this.data.state === "preview") this.setData({
         previewPath,
         previewCanvasWidth: previewPlan.outputWidth,
@@ -543,7 +561,28 @@ Page({
     }
   },
 
-  confirmStitch(this: any) {
+  async confirmStitch(this: any) {
+    if (this.data.gridMode) {
+      if (this.data.adBusy || this.data.state !== "preview") return;
+      const jobId = activeJobId;
+      this.setData({ adBusy: true });
+      try {
+        if (!this.data.gridUnlocked) {
+          const result = await watchGridRewardedAd();
+          if (jobId !== activeJobId || this.data.state !== "preview") return;
+          if (result === "cancelled") {
+            wx.showToast({ title: "未看完广告，仍可返回普通拼接", icon: "none" });
+            return;
+          }
+          if (result === "unavailable") wx.showToast({ title: "暂时无可用广告，本次免费导出", icon: "none" });
+          this.setData({ gridUnlocked: true });
+        }
+        await this.exportResult();
+      } finally {
+        if (jobId === activeJobId) this.setData({ adBusy: false });
+      }
+      return;
+    }
     const unresolved = this.data.seams.findIndex(
       (seam: SeamDecision, index: number) => seam.mode === "manual" && !this.data.confirmedManualPairs.includes(index)
     );
@@ -555,19 +594,19 @@ Page({
   },
 
   async exportResult(this: any) {
-    this.setData({ state: "exporting", progress: 0, progressText: "正在生成长图" });
+    this.setData({ state: "exporting", progress: 0, progressText: this.data.gridMode ? "正在生成宫格拼图" : "正在生成长图" });
     try {
       const canvas = await getCanvasNode(this, "#exportCanvas");
       let multiplier = 1;
       let lastError: Error | null = null;
       for (let attempt = 0; attempt < 3; attempt += 1) {
-        const plan = buildStitchPlan(
+        const plan = this.data.gridMode ? buildPhotoGridPlan(this.data.images, multiplier) : buildStitchPlan(
           this.data.images,
           this.data.seams,
           multiplier,
           this.data.stitchDirection
         );
-        this.setData({ progress: 20 + attempt * 20, progressText: `正在生成长图${attempt ? "（自动降低尺寸）" : ""}` });
+        this.setData({ progress: 20 + attempt * 20, progressText: `正在生成${this.data.gridMode ? "宫格拼图" : "长图"}${attempt ? "（自动降低尺寸）" : ""}` });
         try {
           const resultPath = await canvasExport(canvas, plan, this);
           this.setData({
@@ -615,6 +654,9 @@ Page({
     this.setData({
       state: "select",
       fullImageStitch: false,
+      gridMode: false,
+      gridUnlocked: false,
+      adBusy: false,
       images: [],
       seams: [],
       confirmedManualPairs: [],
@@ -631,6 +673,11 @@ Page({
   },
 
   retryFromError(this: any) {
+    if (this.data.gridMode) {
+      this.setData({ state: "preview", errorMessage: "" });
+      setTimeout(() => this.renderOverview(), 40);
+      return;
+    }
     this.setData({ state: this.data.images.length >= 2 ? "select" : "select", errorMessage: "" });
   },
 
@@ -645,6 +692,7 @@ Page({
       analyzerWorker.postMessage({ type: "CANCEL", jobId: activeJobId } as WorkerRequest);
     }
     activeJobId = "";
+    cancelRewardedAd();
     pendingAnalysis.forEach((pending) => pending.reject(new Error("用户取消分析")));
     pendingAnalysis.clear();
     editingOriginal = null;

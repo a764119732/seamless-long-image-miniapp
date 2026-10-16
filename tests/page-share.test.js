@@ -47,6 +47,7 @@ function loadIndexPage() {
       if (request.endsWith("/source-validation")) {
         return { validatePortraitImage() {} };
       }
+      if (request.endsWith("/photo-grid") || request.endsWith("/rewarded-ad")) return {};
       throw new Error(`Unexpected import: ${request}`);
     }
   });

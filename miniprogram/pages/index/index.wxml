@@ -50,13 +50,14 @@
       </button>
       <button wx:if="{{images.length >= 2}}" class="secondary-button" bindtap="startAnalysis" disabled="{{selectingImages}}">截图去重拼接</button>
       <button wx:if="{{images.length >= 2}}" class="secondary-button" bindtap="stitchFullImages" disabled="{{selectingImages}}">直接拼接（保留完整图片）</button>
+      <button wx:if="{{images.length >= 2}}" class="text-button" bindtap="startPhotoGrid" disabled="{{selectingImages}}">宫格拼图 · 2–9张 · 广告解锁导出</button>
       <text class="helper-text">已选 {{images.length}} / {{maxImages}} 张 · 每次最多选 20 张，可继续添加</text>
       <text class="helper-text">请按{{stitchDirection === 'horizontal' ? '从左到右' : '从上到下'}}顺序选择；超长结果会缩小，文字可能变小</text>
     </view>
   </view>
 
   <view wx:elif="{{state === 'analyzing' || state === 'exporting'}}" class="screen processing-screen">
-    <text class="top-title">{{state === 'analyzing' ? '正在识别重叠内容' : (stitchDirection === 'horizontal' ? '正在生成宽图' : '正在生成长图')}}</text>
+    <text class="top-title">{{state === 'analyzing' ? '正在识别重叠内容' : (gridMode ? '正在生成宫格拼图' : (stitchDirection === 'horizontal' ? '正在生成宽图' : '正在生成长图'))}}</text>
     <view class="processing-visual">
       <view class="scan-card scan-card-one"></view>
       <view class="scan-card scan-card-two"></view>
@@ -69,11 +70,11 @@
   </view>
 
   <view wx:elif="{{state === 'preview'}}" class="screen preview-screen">
-    <text class="top-title">拼接预览</text>
-    <scroll-view class="preview-scroll" scroll-x="{{stitchDirection === 'horizontal'}}" scroll-y enhanced show-scrollbar="false">
+    <text class="top-title">{{gridMode ? '宫格拼图预览' : '拼接预览'}}</text>
+    <scroll-view class="preview-scroll" scroll-x="{{!gridMode && stitchDirection === 'horizontal'}}" scroll-y enhanced show-scrollbar="false">
       <image
         wx:if="{{previewPath}}"
-        class="overview-image {{stitchDirection}}"
+        class="overview-image {{gridMode ? 'vertical' : stitchDirection}}"
         style="width: {{previewCanvasWidth}}px; height: {{previewCanvasHeight}}px;"
         src="{{previewPath}}"
         mode="aspectFit"
@@ -82,7 +83,8 @@
     </scroll-view>
     <view class="removed-status">
       <image src="/assets/icons/check.svg" mode="aspectFit" />
-      <text wx:if="{{fullImageStitch}}">完整保留全部图片，按比例统一{{stitchDirection === 'horizontal' ? '高度' : '宽度'}}</text>
+      <text wx:if="{{gridMode}}">按顺序排列，完整保留照片，空白处留白</text>
+      <text wx:elif="{{fullImageStitch}}">完整保留全部图片，按比例统一{{stitchDirection === 'horizontal' ? '高度' : '宽度'}}</text>
       <text wx:elif="{{autoRemovedCount}}">已自动去除 {{autoRemovedCount}} 处重复内容</text>
       <text wx:elif="{{seams[currentSeamIndex].orderHint}}">检测到图片顺序可能反了</text>
       <text wx:else>当前接缝需要手动确认</text>
@@ -100,9 +102,11 @@
       </view>
       <view class="button-row">
         <button wx:if="{{!fullImageStitch}}" class="outline-button" bindtap="openCurrentSeam">微调接缝</button>
-        <button class="primary-button compact" bindtap="confirmStitch">确认拼接</button>
+        <button class="primary-button compact" bindtap="confirmStitch" disabled="{{adBusy}}" loading="{{adBusy}}">{{gridMode ? (gridUnlocked ? '导出本次拼图' : '观看广告并导出') : '确认拼接'}}</button>
       </view>
-      <button class="text-button" bindtap="returnToSelection">返回重选与排序</button>
+      <text wx:if="{{gridMode && !gridUnlocked}}" class="helper-text">自愿看完一次广告解锁本次导出；取消不影响普通拼接。无可用广告时本次免费。</text>
+      <text wx:if="{{gridMode}}" class="helper-text">广告由微信提供，原图和结果仅在本机处理。</text>
+      <button class="text-button" bindtap="returnToSelection" disabled="{{adBusy}}">返回重选与排序</button>
     </view>
   </view>
 
@@ -156,26 +160,27 @@
   </view>
 
   <view wx:elif="{{state === 'complete'}}" class="screen complete-screen">
-    <text class="top-title">{{stitchDirection === 'horizontal' ? '宽图拼接完成' : '长图拼接完成'}}</text>
+    <text class="top-title">{{gridMode ? '宫格拼图完成' : (stitchDirection === 'horizontal' ? '宽图拼接完成' : '长图拼接完成')}}</text>
     <scroll-view
-      class="result-preview-shell {{stitchDirection}}"
-      scroll-x="{{stitchDirection === 'horizontal'}}"
-      scroll-y="{{stitchDirection === 'vertical'}}"
+      class="result-preview-shell {{gridMode ? 'vertical' : stitchDirection}}"
+      scroll-x="{{!gridMode && stitchDirection === 'horizontal'}}"
+      scroll-y="{{gridMode || stitchDirection === 'vertical'}}"
       enhanced
       show-scrollbar="false"
     >
       <image
-        class="result-preview {{stitchDirection}}"
+        class="result-preview {{gridMode ? 'vertical' : stitchDirection}}"
         src="{{resultPath}}"
-        mode="{{stitchDirection === 'horizontal' ? 'heightFix' : 'widthFix'}}"
+        mode="{{!gridMode && stitchDirection === 'horizontal' ? 'heightFix' : 'widthFix'}}"
       />
     </scroll-view>
     <view class="removed-status result-status">
       <image src="/assets/icons/check.svg" mode="aspectFit" />
-      <text>已生成 1 张{{fullImageStitch ? '完整拼接的' : '无重叠'}}{{stitchDirection === 'horizontal' ? '宽图' : '长图'}}</text>
+      <text wx:if="{{gridMode}}">已生成 1 张宫格拼图，完整保留全部照片</text>
+      <text wx:else>已生成 1 张{{fullImageStitch ? '完整拼接的' : '无重叠'}}{{stitchDirection === 'horizontal' ? '宽图' : '长图'}}</text>
     </view>
     <text class="result-size">{{resultWidth}} × {{resultHeight}}{{resultWasScaled ? ' · 已自动等比缩小' : ''}}</text>
-    <text wx:if="{{resultWidth < 480 || resultHeight < 480}}" class="helper-text">图片较长，文字已缩小，建议放大查看</text>
+    <text wx:if="{{!gridMode && (resultWidth < 480 || resultHeight < 480)}}" class="helper-text">图片较长，文字已缩小，建议放大查看</text>
     <view class="bottom-actions complete-actions">
       <button class="primary-button" bindtap="saveResult">
         <image src="/assets/icons/download.svg" mode="aspectFit" />

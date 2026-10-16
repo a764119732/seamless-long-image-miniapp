@@ -44,6 +44,8 @@ function loadIndexPage(wx, canvasOverrides = {}) {
       if (request.endsWith("/source-validation")) {
         return require("../miniprogram/lib/source-validation");
       }
+      if (request.endsWith("/photo-grid")) return {};
+      if (request.endsWith("/rewarded-ad")) return { cancelRewardedAd() {} };
       throw new Error(`Unexpected import: ${request}`);
     }
   });

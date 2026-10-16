@@ -8,6 +8,7 @@ declare const wx: {
   compressImage(options: Record<string, unknown>): void;
   createOffscreenCanvas(options: Record<string, unknown>): CanvasLike;
   createWorker(path: string): WorkerLike;
+  createRewardedVideoAd(options: { adUnitId: string; multiton: boolean }): RewardedVideoAdLike;
   canvasToTempFilePath(options: Record<string, unknown>, component?: unknown): void;
   getFileSystemManager(): { unlink(options: Record<string, unknown>): void };
   saveImageToPhotosAlbum(options: Record<string, unknown>): void;

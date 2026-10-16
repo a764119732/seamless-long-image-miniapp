@@ -7,7 +7,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const ts = require("typescript");
 
-function loadPage(wx = { showToast() {} }) {
+function loadPage(wx = { showToast() {} }, adUnitId = "") {
   let page;
   const timers = [];
   function load(relativePath) {
@@ -25,6 +25,7 @@ function loadPage(wx = { showToast() {} }) {
           setData(patch, callback) { Object.assign(this.data, patch); callback?.(); } };
       },
       require(request) {
+        if (request.endsWith("/config/monetization")) return { GRID_REWARDED_AD_UNIT_ID: adUnitId };
         if (request.endsWith("/cloudbase")) return { saveStitchRecord() {} };
         const target = path.resolve(path.dirname(filename), request);
         return load(fs.existsSync(`${target}.ts`) ? `${target}.ts` : `${target}.js`);
@@ -33,6 +34,7 @@ function loadPage(wx = { showToast() {} }) {
     return module.exports;
   }
   const { buildStitchPlan } = load("miniprogram/services/stitch-plan.ts");
+  const { buildPhotoGridPlan } = load("miniprogram/services/photo-grid.ts");
   load("miniprogram/pages/index/index.ts");
   page.data.images = [
     { id: "one", path: "one.png", thumbPath: "one.png", width: 1080, height: 2400 },
@@ -40,8 +42,134 @@ function loadPage(wx = { showToast() {} }) {
   ];
   page.data.seams = [{ pairIndex: 0, mode: "auto", prevCropEndRatio: 0.8543,
     nextCropStartRatio: 0.2137, overlapRatio: 0.4 }];
-  return { page, buildStitchPlan };
+  return { page, buildStitchPlan, buildPhotoGridPlan };
 }
+
+test("2–9 张宫格均按顺序放入互不重叠的格子，预览缩放不改变布局", () => {
+  const { buildPhotoGridPlan } = loadPage();
+  for (let count = 2; count <= 9; count += 1) {
+    const images = Array.from({ length: count }, (_, i) => ({ width: i % 2 ? 1200 : 800, height: 1000 }));
+    for (const scale of [1, 0.8, 0.64]) {
+      const plan = buildPhotoGridPlan(images, scale);
+      assert.equal(plan.cells.length, count);
+      assert.equal(plan.outputWidth, Math.floor(1080 * scale));
+      for (const [i, cell] of plan.cells.entries()) {
+        assert.equal(cell.imageIndex, i);
+        assert.ok(cell.x >= 0 && cell.y >= 0);
+        assert.ok((cell.x + cell.size) * scale <= plan.outputWidth);
+        assert.ok((cell.y + cell.size) * scale <= plan.outputHeight);
+        for (const previous of plan.cells.slice(0, i)) {
+          assert.ok(cell.x >= previous.x + previous.size || cell.y >= previous.y + previous.size);
+        }
+      }
+    }
+  }
+});
+
+test("宫格预览不请求广告，混合比例完整保留，广告不可用可导出一张图", async () => {
+  const draws = [];
+  const toasts = [];
+  const { page } = loadPage({
+    canvasToTempFilePath({ success }) { success({ tempFilePath: "grid.png" }); },
+    showToast(options) { toasts.push(options.title); },
+    createRewardedVideoAd() { throw Error("未配置广告位时不应请求"); }
+  });
+  const canvas = {
+    getContext() { return { fillRect() {}, drawImage(...args) { draws.push(args); } }; },
+    createImage() { return { onload: null, onerror: null,
+      set src(value) { if (value) this.onload(); } }; }
+  };
+  page.createSelectorQuery = () => ({ select() { return this; }, fields() { return this; },
+    exec(callback) { callback([{ node: canvas }]); } });
+  const sizes = [[1080, 1080], [1280, 768], [768, 1280]];
+  page.data.images = sizes.map(([width, height], i) => ({ path: `${i}.jpg`, width, height }));
+  page.data.stitchDirection = "horizontal";
+  page.startPhotoGrid();
+  assert.equal(page.data.gridMode, true);
+  assert.equal(page.data.gridUnlocked, false);
+  await page.renderOverview();
+  assert.equal(page.data.previewPath, "grid.png");
+  await page.confirmStitch();
+  assert.equal(page.data.state, "complete");
+  assert.equal(page.data.gridUnlocked, true);
+  assert.deepEqual([page.data.resultWidth, page.data.resultHeight], [1080, 376]);
+  assert.match(toasts[0], /本次免费/);
+  assert.deepEqual(draws.slice(-3).map(draw => draw.slice(1, 5)), sizes.map(([w, h]) => [0, 0, w, h]));
+  for (const draw of draws) assert.ok(Math.abs(draw[3] / draw[4] - draw[7] / draw[8]) < 0.00001);
+});
+
+test("宫格提前关闭广告不导出；观看完成后失败重试沿用权益，普通拼接不请求广告", async () => {
+  for (const ended of [false, true]) {
+    let close;
+    let ads = 0;
+    let exports = 0;
+    const { page } = loadPage({
+      showToast() {},
+      createWorker() { return { onMessage() {}, onError() {}, postMessage() {}, terminate() {} }; },
+      createRewardedVideoAd() {
+        ads += 1;
+        return { async load() {}, async show() {}, destroy() {},
+          onClose(fn) { close = fn; }, offClose() {}, onError() {}, offError() {} };
+      }
+    }, "adunit-test");
+    page.exportResult = async () => {
+      exports += 1;
+      if (exports === 1 && page.data.gridMode) page.showError(new Error("设备暂时导出失败"));
+      else page.setData({ state: "complete" });
+    };
+    page.startPhotoGrid();
+    const first = page.confirmStitch();
+    await page.confirmStitch();
+    await new Promise(setImmediate);
+    assert.equal(ads, 1);
+    close({ isEnded: ended });
+    await first;
+    assert.equal(page.data.adBusy, false);
+    if (!ended) {
+      assert.equal(page.data.state, "preview");
+      assert.equal(exports, 0);
+      assert.equal(page.data.gridUnlocked, false);
+    } else {
+      assert.equal(page.data.state, "error");
+      assert.equal(page.data.gridUnlocked, true);
+      page.retryFromError();
+      await page.confirmStitch();
+      assert.equal(page.data.state, "complete");
+      assert.equal(exports, 2);
+      assert.equal(ads, 1);
+    }
+    page.returnToSelection();
+    page.stitchFullImages();
+    await page.confirmStitch();
+    assert.equal(ads, 1);
+    assert.equal(page.data.state, "complete");
+  }
+});
+
+test("宫格只接受 2–9 张，离开任务时迟到的广告结果不解锁或导出", async () => {
+  let close;
+  const { page } = loadPage({
+    showToast() {},
+    createWorker() { return { onMessage() {}, onError() {}, postMessage() {}, terminate() {} }; },
+    createRewardedVideoAd() { return { async load() {}, async show() {}, destroy() {},
+      onClose(fn) { close = fn; }, offClose() {}, onError() {}, offError() {} }; }
+  }, "adunit-test");
+  const original = page.data.images;
+  for (const count of [1, 10]) {
+    page.data.images = Array.from({ length: count }, () => original[0]);
+    page.startPhotoGrid();
+    assert.equal(page.data.state, "select");
+  }
+  page.data.images = original;
+  page.startPhotoGrid();
+  const request = page.confirmStitch();
+  await new Promise(setImmediate);
+  page.returnToSelection();
+  close({ isEnded: true });
+  await request;
+  assert.equal(page.data.state, "select");
+  assert.equal(page.data.gridUnlocked, false);
+});
 
 test("直接拼接完整保留正方形与横图，按比例统一宽度或高度后导出一张图", async () => {
   for (const direction of ["vertical", "horizontal"]) {
