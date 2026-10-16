@@ -2,8 +2,8 @@
   <view wx:if="{{state === 'select'}}" class="screen screen-select">
     <view class="select-copy">
       <text class="brand-title">青缝长图</text>
-      <text class="screen-title select-title">选择连续截图</text>
-      <text class="screen-subtitle">自动识别重叠部分，图片仅在本机处理</text>
+      <text class="screen-title select-title">选择图片</text>
+      <text class="screen-subtitle">截图去重或完整拼图，图片仅在本机处理</text>
     </view>
 
     <view class="direction-switch" aria-label="拼接方向">
@@ -26,7 +26,7 @@
         <text class="order-number">{{index + 1}}</text>
         <image class="selected-thumb" src="{{item.thumbPath}}" mode="aspectFill" lazy-load />
         <view class="selected-meta">
-          <text class="selected-name">第 {{index + 1}} 张截图</text>
+          <text class="selected-name">第 {{index + 1}} 张图片</text>
           <text class="selected-size">{{item.width}} × {{item.height}}</text>
         </view>
         <view class="row-actions">
@@ -48,7 +48,8 @@
         <image src="/assets/icons/image.svg" mode="aspectFit" />
         <text>{{images.length ? '继续选择' : '从相册选择'}}</text>
       </button>
-      <button wx:if="{{images.length >= 2}}" class="secondary-button" bindtap="startAnalysis" disabled="{{selectingImages}}">开始拼接</button>
+      <button wx:if="{{images.length >= 2}}" class="secondary-button" bindtap="startAnalysis" disabled="{{selectingImages}}">截图去重拼接</button>
+      <button wx:if="{{images.length >= 2}}" class="secondary-button" bindtap="stitchFullImages" disabled="{{selectingImages}}">直接拼接（保留完整图片）</button>
       <text class="helper-text">已选 {{images.length}} / {{maxImages}} 张 · 每次最多选 20 张，可继续添加</text>
       <text class="helper-text">请按{{stitchDirection === 'horizontal' ? '从左到右' : '从上到下'}}顺序选择；超长结果会缩小，文字可能变小</text>
     </view>
@@ -81,13 +82,14 @@
     </scroll-view>
     <view class="removed-status">
       <image src="/assets/icons/check.svg" mode="aspectFit" />
-      <text wx:if="{{autoRemovedCount}}">已自动去除 {{autoRemovedCount}} 处重复内容</text>
+      <text wx:if="{{fullImageStitch}}">完整保留全部图片，按比例统一{{stitchDirection === 'horizontal' ? '高度' : '宽度'}}</text>
+      <text wx:elif="{{autoRemovedCount}}">已自动去除 {{autoRemovedCount}} 处重复内容</text>
       <text wx:elif="{{seams[currentSeamIndex].orderHint}}">检测到图片顺序可能反了</text>
       <text wx:else>当前接缝需要手动确认</text>
     </view>
     <view class="seam-controller">
       <button wx:if="{{seams[currentSeamIndex].orderHint}}" class="primary-button order-fix-button preview-order-fix" bindtap="swapCurrentPairAndRetry">交换这两张并重新分析</button>
-      <view class="seam-navigation">
+      <view wx:if="{{!fullImageStitch}}" class="seam-navigation">
         <button class="square-button" disabled="{{currentSeamIndex === 0}}" bindtap="previousSeam">
           <image src="/assets/icons/chevron-left.svg" mode="aspectFit" />
         </button>
@@ -97,7 +99,7 @@
         </button>
       </view>
       <view class="button-row">
-        <button class="outline-button" bindtap="openCurrentSeam">微调接缝</button>
+        <button wx:if="{{!fullImageStitch}}" class="outline-button" bindtap="openCurrentSeam">微调接缝</button>
         <button class="primary-button compact" bindtap="confirmStitch">确认拼接</button>
       </view>
       <button class="text-button" bindtap="returnToSelection">返回重选与排序</button>
@@ -170,7 +172,7 @@
     </scroll-view>
     <view class="removed-status result-status">
       <image src="/assets/icons/check.svg" mode="aspectFit" />
-      <text>已生成 1 张无重叠{{stitchDirection === 'horizontal' ? '宽图' : '长图'}}</text>
+      <text>已生成 1 张{{fullImageStitch ? '完整拼接的' : '无重叠'}}{{stitchDirection === 'horizontal' ? '宽图' : '长图'}}</text>
     </view>
     <text class="result-size">{{resultWidth}} × {{resultHeight}}{{resultWasScaled ? ' · 已自动等比缩小' : ''}}</text>
     <text wx:if="{{resultWidth < 480 || resultHeight < 480}}" class="helper-text">图片较长，文字已缩小，建议放大查看</text>

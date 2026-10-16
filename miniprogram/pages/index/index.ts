@@ -70,6 +70,7 @@ Page({
     state: "select" as AppState,
     statusBarHeight: 24,
     stitchDirection: "vertical" as StitchDirection,
+    fullImageStitch: false,
     maxImages: MAX_IMAGES,
     selectingImages: false,
     images: [] as SourceImage[],
@@ -211,7 +212,7 @@ Page({
           const additions: SourceImage[] = [];
           for (const file of result.tempFiles.slice(0, Math.min(20, remaining))) {
             const info = await getImageInfo(file.tempFilePath);
-            validateSourceImage(info, this.data.stitchDirection);
+            validateSourceImage(info);
             additions.push({
               id: createId("image"),
               path: file.tempFilePath,
@@ -271,10 +272,29 @@ Page({
     this.setData({ images: images.map((image: SourceImage, order: number) => ({ ...image, order })) });
   },
 
+  stitchFullImages(this: any) {
+    if (this.data.selectingImages || this.data.state !== "select") return;
+    if (this.data.images.length < 2) {
+      wx.showToast({ title: "请至少选择 2 张图片", icon: "none" });
+      return;
+    }
+    this.releaseTask(false);
+    const seams: SeamDecision[] = this.data.images.slice(1).map((_: SourceImage, pairIndex: number) => ({
+      pairIndex, mode: "manual", prevCropEndRatio: 1, nextCropStartRatio: 0,
+      fixedTopRatio: 0, fixedBottomRatio: 0, confidence: 0, margin: 0, textureCoverage: 0, overlapRatio: 0
+    }));
+    this.setData({
+      state: "preview", fullImageStitch: true, seams,
+      confirmedManualPairs: seams.map(seam => seam.pairIndex),
+      currentSeamIndex: 0, autoRemovedCount: 0, previewPath: "", errorMessage: ""
+    });
+    setTimeout(() => this.renderOverview(), 40);
+  },
+
   async startAnalysis(this: any) {
     if (this.data.selectingImages || this.data.state === "analyzing") return;
     if (this.data.images.length < 2) {
-      wx.showToast({ title: "请至少选择 2 张截图", icon: "none" });
+      wx.showToast({ title: "请至少选择 2 张图片", icon: "none" });
       return;
     }
     this.ensureWorker();
@@ -283,6 +303,7 @@ Page({
     const images = [...this.data.images] as SourceImage[];
     this.setData({
       state: "analyzing",
+      fullImageStitch: false,
       progress: 2,
       progressText: "正在读取图片",
       seams: [],
@@ -433,6 +454,7 @@ Page({
     this.releaseTask(false);
     this.setData({
       state: "select",
+      fullImageStitch: false,
       seams: [],
       confirmedManualPairs: [],
       progress: 0,
@@ -592,6 +614,7 @@ Page({
     this.releaseTask(false);
     this.setData({
       state: "select",
+      fullImageStitch: false,
       images: [],
       seams: [],
       confirmedManualPairs: [],

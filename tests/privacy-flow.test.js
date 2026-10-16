@@ -164,11 +164,11 @@ test("分批选图累计到 99 张，单次不超过 20 张；忙碌和满额时
   assert.equal(calls, 5);
 });
 
-test("取消选图或图片方向不符后解除忙碌状态，已有图片保留", async () => {
+test("取消选图或尺寸无效后解除忙碌状态，已有图片保留", async () => {
   let picker;
   const page = loadIndexPage({
     chooseMedia(options) { picker = options; },
-    getImageInfo({ success }) { success({ width: 2400, height: 1080 }); },
+    getImageInfo({ success }) { success({ width: 0, height: 1080 }); },
     showToast() {}
   });
   page.data.images = [{ id: "existing" }];
@@ -180,6 +180,23 @@ test("取消选图或图片方向不符后解除忙碌状态，已有图片保�
   assert.equal(page.data.selectingImages, false);
   assert.equal(page.data.images.length, 1);
   assert.equal(page.data.state, "error");
+});
+
+test("正方形和两张横图可以同时导入，图片顺序和原始尺寸保留", async () => {
+  for (const direction of ["vertical", "horizontal"]) {
+    let picker;
+    const sizes = [[1080, 1080], [1280, 768], [1280, 768]];
+    const page = loadIndexPage({
+      chooseMedia(options) { picker = options; },
+      getImageInfo({ src, success }) { const [width, height] = sizes[Number(src)]; success({ width, height }); }
+    });
+    page.data.stitchDirection = direction;
+    page.openMediaPicker();
+    await picker.success({ tempFiles: sizes.map((_, i) => ({ tempFilePath: String(i) })) });
+    assert.equal(page.data.state, "select");
+    assert.deepEqual(Array.from(page.data.images, image => [image.width, image.height]), sizes);
+    assert.deepEqual(Array.from(page.data.images, image => image.path), ["0", "1", "2"]);
+  }
 });
 
 test("99 张按相邻两张交替读取和分析，产生 98 个接缝", async () => {

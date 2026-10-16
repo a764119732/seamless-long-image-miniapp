@@ -43,6 +43,40 @@ function loadPage(wx = { showToast() {} }) {
   return { page, buildStitchPlan };
 }
 
+test("直接拼接完整保留正方形与横图，按比例统一宽度或高度后导出一张图", async () => {
+  for (const direction of ["vertical", "horizontal"]) {
+    const draws = [];
+    const { page } = loadPage({
+      canvasToTempFilePath({ success }) { success({ tempFilePath: "photos.png" }); },
+      createWorker() { throw new Error("直接拼图不应启动重叠分析"); }
+    });
+    const canvas = {
+      getContext() { return { fillRect() {}, drawImage(...args) { draws.push(args); } }; },
+      createImage() { return { width: 0, height: 0, onload: null, onerror: null,
+        set src(value) { if (value) this.onload(); } }; }
+    };
+    page.createSelectorQuery = () => ({ select() { return this; }, fields() { return this; },
+      exec(callback) { callback([{ node: canvas }]); } });
+    page.data.stitchDirection = direction;
+    page.data.images = [[1080, 1080], [1280, 768], [1280, 768]].map(([width, height], i) =>
+      ({ id: String(i), path: `${i}.jpg`, width, height }));
+    page.stitchFullImages();
+    assert.equal(page.data.state, "preview");
+    assert.equal(page.data.fullImageStitch, true);
+    assert.equal(page.data.autoRemovedCount, 0);
+    let exporting;
+    const exportResult = page.exportResult.bind(page);
+    page.exportResult = () => { exporting = exportResult(); };
+    page.confirmStitch();
+    await exporting;
+    assert.equal(page.data.state, "complete");
+    assert.equal(page.data.resultPath, "photos.png");
+    assert.deepEqual([page.data.resultWidth, page.data.resultHeight], direction === "vertical" ? [1080, 2376] : [4680, 1080]);
+    assert.deepEqual(draws.map(args => args.slice(1, 5)), [[0, 0, 1080, 1080], [0, 0, 1280, 768], [0, 0, 1280, 768]]);
+    for (const draw of draws) assert.ok(Math.abs(draw[7] / draw[8] - draw[3] / draw[4]) < 0.00001);
+  }
+});
+
 test("手动预览显示完整原图，裁切线所在容器和原图保持相同比例", () => {
   const { page } = loadPage();
   const wxml = fs.readFileSync(path.join(__dirname, "../miniprogram/pages/index/index.wxml"), "utf8");

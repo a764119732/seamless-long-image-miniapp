@@ -124,11 +124,13 @@ test("无效像素输入给出明确错误", () => {
   assert.throws(() => createAnalysisFrame({ width: 20, height: 20, rgba: new Uint8ClampedArray(8) }), /像素数据无效/);
 });
 
-test("导入图片方向必须与用户选择的拼接方向一致", () => {
-  assert.equal(validateSourceImage({ width: 1170, height: 2532 }, "vertical"), true);
-  assert.equal(validateSourceImage({ width: 2532, height: 1170 }, "horizontal"), true);
-  assert.throws(() => validateSourceImage({ width: 2532, height: 1170 }, "vertical"), /竖向截图/);
-  assert.throws(() => validateSourceImage({ width: 1170, height: 2532 }, "horizontal"), /横向截图/);
+test("导入允许正方形、横图和竖图混合，仍拒绝无效尺寸", () => {
+  for (const [width, height] of [[1080, 1080], [1280, 768], [1170, 2532]]) {
+    assert.equal(validateSourceImage({ width, height }), true);
+  }
+  for (const info of [null, {}, { width: 0, height: 768 }, { width: 1080, height: NaN }, { width: Infinity, height: 768 }]) {
+    assert.throws(() => validateSourceImage(info), /无法读取图片尺寸/);
+  }
 });
 
 test("识别横向连续截图的左右重叠", () => {

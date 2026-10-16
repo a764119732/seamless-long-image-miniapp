@@ -1,12 +1,13 @@
 # 青缝长图拼接
 
-一款原生微信小程序：按顺序分批选择 2–99 张连续截图，在手机本地识别重复区域、微调接缝，并导出一张 PNG 长图或宽图。每次最多选 20 张，可继续添加。
+一款原生微信小程序：按顺序分批选择 2–99 张图片，在手机本地完整拼图，或识别连续截图的重复区域、微调接缝，并导出一张 PNG 长图或宽图。每次最多选 20 张，可继续添加。
 
 ![青缝长图拼接功能对比](assets/marketing/qingfeng-horizontal-comparison-16x9-x.png)
 
 ## 核心能力
 
-- 支持上下拼接和左右拼接，分别适配竖向截图与横向截图。
+- 支持上下拼接和左右拼接，允许正方形、横图和竖图混合选择，按比例统一宽度或高度。
+- 照片选择“直接拼接（保留完整图片）”，跳过重叠识别和裁切；连续截图可使用“截图去重拼接”。
 - 自动识别相邻截图的重复区域，并处理固定顶部栏和底部栏。
 - 低置信度、低纹理或无可靠重叠时进入手动接缝，不静默猜测。
 - 支持图片排序、任务取消、拼接预览、PNG 导出和保存相册。
@@ -29,7 +30,7 @@
 | `miniprogram/workers` | 可独立测试的重叠识别算法与 Worker 协议 |
 | `miniprogram/services/stitch-plan.ts` | 上下/左右裁切计划与输出尺寸控制 |
 | `miniprogram/services/canvas.ts` | Canvas 2D 渲染、预览与 PNG 导出 |
-| `miniprogram/lib/source-validation.js` | 输入图片尺寸与方向校验 |
+| `miniprogram/lib/source-validation.js` | 输入图片尺寸有效性校验 |
 | `tests` | Node 内置测试覆盖算法、隐私流程、分享和任务取消 |
 
 主要技术：TypeScript、WXML、WXSS、Canvas 2D、Worker、Node.js Test Runner。
